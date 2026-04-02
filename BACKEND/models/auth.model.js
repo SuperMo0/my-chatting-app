@@ -1,5 +1,11 @@
 import prisma from '../lib/prisma.js'
 
+const UserOutput = {
+    id: true,
+    name: true,
+    email: true,
+    avatar: true,
+}
 export async function insertUser(name, email, password) {
     try {
         let user = await prisma.user.create({
@@ -19,12 +25,7 @@ export async function insertUser(name, email, password) {
                     }
                 }
             },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                avatar: true,
-            }
+            select: UserOutput
         })
         return user
 
@@ -76,12 +77,7 @@ export async function getUserById(id) {
         const user = prisma.user.findUnique({
             where: {
                 id: id
-            }, select: {
-                id: true,
-                name: true,
-                email: true,
-                avatar: true,
-            }
+            }, select: UserOutput
         })
         return user;
 

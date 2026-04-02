@@ -2,16 +2,20 @@ import React, { useState } from 'react'
 import { useAuthStore } from '../stores/auth.store.js';
 import { ClipLoader } from 'react-spinners';
 import { NavLink } from 'react-router';
+import { UserSignupSchema } from 'shared/auth';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { UserSignup } from 'shared/auth';
 
 export default function Signup() {
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
     const { signup, isSigningUp } = useAuthStore();
 
-    function handleFormSubmit(e) {
-        e.preventDefault();
-        signup({ email, password, name });
+    const { register, handleSubmit, formState } = useForm({
+        resolver: zodResolver(UserSignupSchema)
+    });
+
+    function handleFormSubmit(data: UserSignup) {
+        signup(data);
     }
 
     return (
@@ -23,39 +27,40 @@ export default function Signup() {
                 </div>
 
                 <div className="glass-card p-8 rounded-4xl">
-                    <form onSubmit={handleFormSubmit} className="space-y-4">
+                    <form noValidate onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Full Name</label>
+                            <label htmlFor='name' className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Full Name</label>
                             <input
-                                required
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                {...register("name")}
                                 type="text"
                                 className="input input-bordered w-full rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:border-blue"
                                 placeholder="John Doe"
+                                id='name'
                             />
+                            <p className="text-red-500 text-xs">{formState.errors.name?.message}</p>
+
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Email Address</label>
+                            <label htmlFor='email' className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Email Address</label>
                             <input
-                                required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                {...register("email")}
                                 type="email"
                                 className="input input-bordered w-full rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:border-blue"
                                 placeholder="name@email.com"
+                                id='email'
                             />
+                            <p className="text-red-500 text-xs">{formState.errors.email?.message}</p>
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Password</label>
+                            <label htmlFor='password' className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Password</label>
                             <input
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                {...register("password")}
                                 type="password"
                                 className="input input-bordered w-full rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:border-blue"
                                 placeholder="••••••••"
+                                id='password'
                             />
+                            <p className="text-red-500 text-xs">{formState.errors.password?.message}</p>
                         </div>
 
                         <button disabled={isSigningUp} className="btn bg-blue hover:bg-blue-600 border-0 text-white w-full rounded-xl h-12 btn-glow mt-4">

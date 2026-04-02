@@ -26,6 +26,7 @@ export async function getUserFriends(userId) {
 }
 
 export async function getUserChats(userId) {
+    console.log(userId);
     try {
         let result = await prisma.user.findUnique({
             select: {
