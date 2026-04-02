@@ -7,6 +7,7 @@ export async function hash(password: string) {
 }
 
 export async function compare(current: string, original: string) {
+
     let result = await bcrypt.compare(current, original);
     return result;
 }
