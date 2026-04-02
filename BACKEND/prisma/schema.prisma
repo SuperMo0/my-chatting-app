@@ -38,7 +38,8 @@ model chat {
 
 model message {
   id        String    @id @default(dbgenerated("gen_random_uuid()"))
-  content   String
+  content   String?
+  type      String    @default("text")
   lastIn    chat?     @relation("last_message")
   chat      chat      @relation("chat_messages", fields: [chatId], references: [id])
   chatId    String
@@ -47,6 +48,7 @@ model message {
   senderId  String
   isRead    Boolean   @default(false)
   readAt    DateTime?
+  metaData  Json?     @default("{}")
 
   @@index([chatId, timestamp])
 }
