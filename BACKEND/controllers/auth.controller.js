@@ -33,10 +33,6 @@ export async function login(req, res) {
 export async function signup(req, res) {
 
     let { name, email, password } = req.body;
-
-    const { error, ok } = validateNewUser(name, email, password);
-
-    if (!ok) return res.status(401).json({ message: "Invalid request" })
     let user;
     try {
         password = await hash(password);
