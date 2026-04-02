@@ -11,6 +11,11 @@
   "license": "ISC",
   "type": "module",
   "exports": {
-    "./chat": "./chat-types.ts"
+    "./chat": "./chat-types.ts",
+    "./auth": "./auth-type.ts",
+    "./user": "./user-type.ts"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
   }
 }
