@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import { getFriend } from "../utils/utils.js";
 import { useAuthStore } from "./auth.store.js";
 import { io } from 'socket.io-client'
+import { produce } from 'immer'
+import { createOptimisticMessage } from "./../utils/chat.js";
 
 export const useChatStore = create((set, get) => ({
     isLoading: false,
@@ -84,37 +86,30 @@ export const useChatStore = create((set, get) => ({
         }
     },
 
-    sendMessage: async (content) => {
+    sendMessage: async (content, imageUrl) => {
         const { selectedChat, messages, chats } = get();
         const { authUser } = useAuthStore.getState();
         if (!selectedChat) return;
 
-        const tempId = Date.now().toString();
-        const optimisticMsg = {
-            id: tempId,
-            content,
-            senderId: authUser.id,
-            timestamp: new Date().toISOString(),
-            isRead: false,
-            chatId: selectedChat.id,
-            isOptimistic: true
-        };
-
+        const optimisticMsg = createOptimisticMessage(content, imageUrl, imageUrl ? "image" : "text", authUser.id, selectedChat.id);
 
         const prevMessages = [...(messages || [])];
         const prevChats = [...(chats || [])];
 
-
-        set({
-            messages: [...prevMessages, optimisticMsg],
-            chats: chats.map(c => c.id === selectedChat.id ? { ...c, lastMessage: optimisticMsg } : c)
-        });
+        set(produce((state) => {
+            state.messages.push(optimisticMsg);
+            let chatPos = state.chats.findIndex(c => c.id === selectedChat.id);
+            state.chats[chatPos].lastMessage = optimisticMsg;
+        }));
 
         try {
-            await api.post(`app/message/${selectedChat.id}`, { content });
+            await api.post(`app/message/${selectedChat.id}`, { content, imageUrl });
         } catch (error) {
             toast.error("Message failed to send.");
-            set({ messages: prevMessages, chats: prevChats });
+            set(produce((state) => {
+                state.messages = prevMessages;
+                state.chats = prevChats;
+            }));
             throw error;
         }
     },
