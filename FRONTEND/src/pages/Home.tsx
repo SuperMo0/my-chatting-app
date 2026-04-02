@@ -18,9 +18,6 @@ export default function Home() {
         getChats();
         getRequestsToUser();
         const socket = connectSocket();
-        console.log('running');
-
-
         return () => {
             socket?.disconnect(); console.log('disconnect');
         };
@@ -32,7 +29,7 @@ export default function Home() {
         return (
             <div className='flex flex-col items-center justify-center h-screen bg-base-100 gap-4'>
                 <ClipLoader color='#3b82f6' size={50} />
-                <p className="text-sm font-medium animate-pulse">Initializing your workspace...</p>
+                <p className="text-sm font-medium animate-pulse">Loading...</p>
             </div>
         );
     }

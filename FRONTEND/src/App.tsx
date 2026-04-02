@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import './App.css'
 import Home from './pages/Home.jsx'
 import { Routes, Route, Navigate } from 'react-router'
@@ -6,31 +6,19 @@ import Chats from './pages/Chats.jsx'
 import Profile from './pages/Profile.jsx'
 import People from './pages/People.jsx'
 import { useAuthStore } from './stores/auth.store.js';
-import Login from './pages/Login.jsx'
+import Login from './pages/Login.js'
 import { ToastContainer } from 'react-toastify';
 import { ClipLoader } from 'react-spinners'
-import Signup from './pages/Signup.jsx'
+import Signup from './pages/Signup.js'
+import { useTheme } from './theme/useTheme.js';
 
 function App() {
   const { authUser, check, isChecking } = useAuthStore();
-  const [dark, setDark] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) return savedTheme === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  const { dark, toggleDark } = useTheme();
 
   useEffect(() => {
     check();
   }, [check]);
-
-  useEffect(() => {
-    localStorage.setItem('theme', dark ? 'dark' : 'light');
-    if (dark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [dark]);
 
   if (isChecking) {
     return (
@@ -42,8 +30,6 @@ function App() {
       </div>
     );
   }
-
-  const toggleDark = () => setDark(prev => !prev);
 
   return (
     <div
