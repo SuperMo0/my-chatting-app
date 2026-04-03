@@ -9,6 +9,8 @@ import { createOptimisticMessage } from "./../utils/chat.js";
 
 export const useChatStore = create((set, get) => ({
     isLoading: false,
+    isLoadingMoreMessages: false,
+    hasMoreMessages: true,
     messages: null,
     friends: null,
     chats: null,
@@ -25,64 +27,107 @@ export const useChatStore = create((set, get) => ({
     getFriends: async () => {
         try {
             const result = await api.get('/app/friends');
-            set({ friends: result.data.friends });
+            set(produce((state) => { state.friends = result.data.friends; }));
         } catch (error) {
             toast.error("Couldn't sync your friends list.");
         }
     },
 
     getChats: async () => {
-        set({ isGettingChats: true });
+        set(produce((state) => { state.isGettingChats = true; }));
         try {
             const result = await api.get('/app/chats');
-            set({ chats: result.data.chats });
+            set(produce((state) => { state.chats = result.data.chats; }));
         } catch (error) {
             toast.error("Couldn't load conversations.");
         } finally {
-            set({ isGettingChats: false });
+            set(produce((state) => { state.isGettingChats = false; }));
         }
     },
 
     getUsers: async () => {
         try {
             const result = await api('/app/users');
-            set({ users: result.data.users });
+            set(produce((state) => { state.users = result.data.users; }));
         } catch (error) {
             toast.error("Failed to fetch user directory.");
         }
     },
 
     setSelectedChat: (selectedChat) => {
-        set({ selectedChat });
+        set(produce((state) => {
+            state.selectedChat = selectedChat;
+            state.messages = null;
+            state.hasMoreMessages = true;
+            state.isLoadingMoreMessages = false;
+        }));
         if (selectedChat && selectedChat.id === "1") {
-            set({
-                selectedFriend: {
+            set(produce((state) => {
+                state.selectedFriend = {
                     id: "1",
                     name: "Global Chat",
                     avatar: "https://thumbs.dreamstime.com/b/global-people-network-connection-blue-earth-ai-generated-user-icons-connected-around-glowing-globe-represents-419468051.jpg"
-                }
-            });
+                };
+            }));
             return;
         }
         if (selectedChat) {
             const friend = getFriend(useAuthStore.getState().authUser.id, selectedChat);
-            set({ selectedFriend: friend });
+            set(produce((state) => { state.selectedFriend = friend; }));
         } else {
-            set({ selectedFriend: null });
+            set(produce((state) => { state.selectedFriend = null; }));
         }
     },
 
-    getMessages: async () => {
-        const { selectedChat } = get();
+    getMessages: async ({ loadMore = false } = {}) => {
+        const { selectedChat, messages, hasMoreMessages, isLoadingMoreMessages } = get();
         if (!selectedChat) return;
-        set({ isLoading: true });
+
+        if (loadMore && (!hasMoreMessages || isLoadingMoreMessages)) return;
+
+        if (loadMore) {
+            set(produce((state) => { state.isLoadingMoreMessages = true; }));
+        } else {
+            set(produce((state) => {
+                state.isLoading = true;
+                state.messages = null;
+                state.hasMoreMessages = true;
+            }));
+        }
+
         try {
-            const result = await api.get(`/app/chat/${selectedChat.id}/messages`);
-            set({ messages: result.data.messages });
+            const params = { limit: 20 };
+            if (loadMore && messages?.length > 0) {
+                params.before = messages[0].timestamp;
+            }
+
+            const result = await api.get(`/app/chat/${selectedChat.id}/messages`, { params });
+            const fetchedMessages = result.data.messages || [];
+            const hasMore = Boolean(result.data.hasMore);
+
+            set(produce((state) => {
+                if (loadMore) {
+                    const currentIds = new Set(state.messages.map(m => m.id));
+                    const uniqueFetched = fetchedMessages.filter(m => !currentIds.has(m.id));
+
+                    uniqueFetched.reverse().forEach((msg) => {
+                        state.messages.unshift(msg);
+                    });
+
+                    state.hasMoreMessages = hasMore;
+                    state.isLoadingMoreMessages = false;
+                } else {
+                    state.messages = fetchedMessages;
+                    state.hasMoreMessages = hasMore;
+                    state.isLoading = false;
+                }
+            }));
         } catch (error) {
             toast.error("Failed to load message history.");
-        } finally {
-            set({ isLoading: false });
+            set(produce((state) => {
+                state.isLoading = false;
+                state.isLoadingMoreMessages = false;
+            }));
         }
     },
 
@@ -93,13 +138,17 @@ export const useChatStore = create((set, get) => ({
 
         const optimisticMsg = createOptimisticMessage(content, imageUrl, imageUrl ? "image" : "text", authUser.id, selectedChat.id);
 
-        const prevMessages = [...(messages || [])];
-        const prevChats = [...(chats || [])];
+        const prevMessages = messages ? messages.slice() : [];
+        const prevChats = chats ? chats.slice() : [];
 
         set(produce((state) => {
+            if (!state.messages) state.messages = [];
             state.messages.push(optimisticMsg);
-            let chatPos = state.chats.findIndex(c => c.id === selectedChat.id);
-            state.chats[chatPos].lastMessage = optimisticMsg;
+
+            if (state.chats) {
+                const chat = state.chats.find(c => c.id === selectedChat.id);
+                if (chat) chat.lastMessage = optimisticMsg;
+            }
         }));
 
         try {
@@ -117,29 +166,31 @@ export const useChatStore = create((set, get) => ({
     getRequestsByUser: async () => {
         try {
             const result = await api.get('/app/requests/by');
-            set({ requestsByUser: result.data.requestsBy });
+            set(produce((state) => { state.requestsByUser = result.data.requestsBy; }));
         } catch (error) {
             console.error(error);
         }
     },
 
     getRequestsToUser: async () => {
-        set({ isGettingRequestsToUser: true });
+        set(produce((state) => { state.isGettingRequestsToUser = true; }));
         try {
             const result = await api.get('/app/requests/to');
-            set({ requestsToUser: result.data.requestsTo });
+            set(produce((state) => { state.requestsToUser = result.data.requestsTo; }));
         } catch (error) {
             console.error(error);
         } finally {
-            set({ isGettingRequestsToUser: false });
+            set(produce((state) => { state.isGettingRequestsToUser = false; }));
         }
     },
 
     sendNewRequest: async (receiver) => {
-        const prevRequests = [...(get().requestsByUser || [])];
         try {
             const result = await api.post(`/app/request/${receiver.id}`);
-            set({ requestsByUser: [...prevRequests, result.data.request] });
+            set(produce((state) => {
+                if (!state.requestsByUser) state.requestsByUser = [];
+                state.requestsByUser.push(result.data.request);
+            }));
             toast.success("Request sent!");
         } catch (error) {
             toast.error('Could not send request.');
@@ -147,10 +198,14 @@ export const useChatStore = create((set, get) => ({
     },
 
     acceptRequest: async (request) => {
-        const prevTo = [...(get().requestsToUser || [])];
         try {
             await api.put(`/app/request/${request.id}`);
-            set({ requestsToUser: prevTo.filter((r) => r.id !== request.id) });
+            set(produce((state) => {
+                if (state.requestsToUser) {
+                    const idx = state.requestsToUser.findIndex((r) => r.id === request.id);
+                    if (idx !== -1) state.requestsToUser.splice(idx, 1);
+                }
+            }));
             toast.success("Friend request accepted!");
         } catch (error) {
             toast.error('Failed to accept request.');
@@ -160,12 +215,15 @@ export const useChatStore = create((set, get) => ({
     markChatAsRead: async (chat) => {
         if (!chat || chat.id === "1") return;
 
-        const prevChats = [...(get().chats || [])];
-        const newChats = prevChats.map(c =>
-            c.id === chat.id ? { ...c, lastMessage: { ...c.lastMessage, isRead: true } } : c
-        );
+        set(produce((state) => {
+            if (state.chats) {
+                const targetChat = state.chats.find(c => c.id === chat.id);
+                if (targetChat && targetChat.lastMessage) {
+                    targetChat.lastMessage.isRead = true;
+                }
+            }
+        }));
 
-        set({ chats: newChats });
         try {
             await api.put(`app/chat/${chat.id}/read`);
         } catch (error) {
@@ -181,67 +239,87 @@ export const useChatStore = create((set, get) => ({
             withCredentials: true,
         });
 
-
         socket.on('onlineUsers', (onlineUsers) => {
-            set({ onlineUsers: onlineUsers })
-
+            set(produce((state) => { state.onlineUsers = onlineUsers; }));
         });
 
         socket.on("chatUpdate", (chat) => {
-            const { chats, selectedChat, messages } = get();
+            const { selectedChat } = get();
             const { authUser } = useAuthStore.getState();
 
             const isSelected = selectedChat?.id === chat.id;
 
-            if (isSelected) {
-                const currentMessages = messages || [];
+            set(produce((state) => {
+                if (isSelected && state.messages) {
+                    const msgIdx = state.messages.findIndex(m => m.isOptimistic && m.content === chat.lastMessage.content);
+                    if (msgIdx !== -1) {
+                        state.messages.splice(msgIdx, 1);
+                    }
 
-                const filteredMessages = currentMessages.filter(m =>
-                    !(m.isOptimistic && m.content === chat.lastMessage.content)
-                );
+                    state.messages.push(chat.lastMessage);
 
-                set({ messages: [...filteredMessages, chat.lastMessage] });
-
-                if (chat.lastMessage.senderId !== authUser.id) {
-                    chat.lastMessage.isRead = true;
-                    if (chat.id !== "1") socket.emit("messageReadUpdate", chat.lastMessage);
+                    if (chat.lastMessage.senderId !== authUser.id) {
+                        chat.lastMessage.isRead = true;
+                        if (chat.id !== "1") socket.emit("messageReadUpdate", chat.lastMessage);
+                    }
                 }
-            }
 
-            const otherChats = chats ? chats.filter((c) => c.id !== chat.id) : [];
-            set({ chats: [chat, ...otherChats] });
+                if (state.chats) {
+                    const chatIdx = state.chats.findIndex((c) => c.id === chat.id);
+                    if (chatIdx !== -1) {
+                        state.chats.splice(chatIdx, 1);
+                    }
+                    state.chats.unshift(chat);
+                }
+            }));
         });
 
         socket.on("friendsUpdate", (friend) => {
-            const currentFriends = get().friends || [];
-            set({ friends: [...currentFriends, friend] });
+            set(produce((state) => {
+                if (!state.friends) state.friends = [];
+                state.friends.push(friend);
+            }));
         });
 
         socket.on("chatIsRead", (chat) => {
-            const { selectedChat, messages } = get();
+            const { selectedChat } = get();
             const { authUser } = useAuthStore.getState();
             if (!selectedChat || chat.id !== selectedChat.id) return;
 
-            const newMessages = (messages || []).map((m) =>
-                (m.senderId === authUser.id) ? { ...m, isRead: true, readAt: chat.lastMessage.readAt } : m
-            );
-            set({ messages: newMessages });
+            set(produce((state) => {
+                if (state.messages) {
+                    state.messages.forEach(m => {
+                        if (m.senderId === authUser.id) {
+                            m.isRead = true;
+                            m.readAt = chat.lastMessage.readAt;
+                        }
+                    });
+                }
+            }));
         });
 
         socket.on("requestsToUserUpdate", (request) => {
-            const currentTo = get().requestsToUser || [];
-            set({ requestsToUser: [...currentTo, request] });
+            set(produce((state) => {
+                if (!state.requestsToUser) state.requestsToUser = [];
+                state.requestsToUser.push(request);
+            }));
         });
 
         socket.on("messageReadUpdate", (message) => {
-            const { selectedChat, messages } = get();
+            const { selectedChat } = get();
             if (!selectedChat || message.chatId !== selectedChat.id) return;
 
-            const newMessages = (messages || []).map((m) => m.id === message.id ? message : m);
-            set({ messages: newMessages });
+            set(produce((state) => {
+                if (state.messages) {
+                    const msg = state.messages.find(m => m.id === message.id);
+                    if (msg) {
+                        Object.assign(msg, message);
+                    }
+                }
+            }));
         });
 
-        set({ socket });
+        set(produce((state) => { state.socket = socket; }));
         return socket;
     }
 }));
