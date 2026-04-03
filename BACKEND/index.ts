@@ -6,6 +6,7 @@ import userRouter from './routes/user.router.js'
 import cookieParser from 'cookie-parser';
 import cors from 'cors'
 import { io, app, server } from './lib/socket.js'
+import errorHandler from './middlewares/error-handler.js'
 import path from "path";
 
 
@@ -34,6 +35,8 @@ if (process.env.NODE_ENV == "production") {
         res.sendFile(path.join(dist, '/index.html'));
     })
 }
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
