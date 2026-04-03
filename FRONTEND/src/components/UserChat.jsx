@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { useChatStore } from './../stores/chat.store'
 import UserChatHeader from './UserChatHeader';
 import MeBubble from './MeBubble'
@@ -6,14 +6,35 @@ import FriendBubble from './FriendBubble'
 import ChatInput from './ChatInput';
 import { useAuthStore } from '../stores/auth.store.js';
 import { ClipLoader } from 'react-spinners';
+import { useChatScroll } from '../hooks/useChatScroll.js';
+
 export default function UserChat() {
-    const { getMessages, selectedChat, messages, markChatAsRead } = useChatStore();
+    const {
+        getMessages,
+        selectedChat,
+        messages,
+        markChatAsRead,
+        hasMoreMessages,
+        isLoadingMoreMessages
+    } = useChatStore();
+
     const { authUser } = useAuthStore();
-    const messagesEndRef = useRef(null);
+
+    const loadMoreItems = useCallback(() => {
+        getMessages({ loadMore: true });
+    }, [getMessages]);
+
+    const { containerRef, scrollToBottom } = useChatScroll({
+        chatId: selectedChat?.id,
+        messages,
+        hasMore: hasMoreMessages,
+        loadMoreItems,
+    });
 
     useEffect(() => {
+        if (!selectedChat?.id) return;
         getMessages();
-    }, [selectedChat.id, getMessages]);
+    }, [selectedChat?.id, getMessages]);
 
     useEffect(() => {
         if (!messages || !selectedChat?.lastMessage) return;
@@ -25,10 +46,6 @@ export default function UserChat() {
             markChatAsRead(selectedChat);
         }
     }, [selectedChat, messages, authUser.id, markChatAsRead]);
-
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
 
     if (!messages) return (
         <div className='flex items-center justify-center h-full bg-transparent'>
@@ -42,7 +59,15 @@ export default function UserChat() {
                 <UserChatHeader />
             </div>
 
-            <div className='flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4 no-scrollbar scroll-smooth'>
+            <div
+                ref={containerRef}
+                className='flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4 no-scrollbar'
+            >
+                {isLoadingMoreMessages && (
+                    <div className='w-full flex justify-center py-2'>
+                        <ClipLoader color='#3b82f6' size={20} />
+                    </div>
+                )}
                 {messages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center opacity-30 text-center">
                         <p className="text-xl font-black italic">Start of a new story...</p>
@@ -54,10 +79,9 @@ export default function UserChat() {
                             : <FriendBubble key={message.id} message={message} />
                     ))
                 )}
-                <div ref={messagesEndRef} />
             </div>
             <div className='p-2 md:p-4 bg-white/5 dark:bg-black/5 backdrop-blur-md border-t border-white/10 dark:border-white/5'>
-                <ChatInput />
+                <ChatInput onSend={scrollToBottom} />
             </div>
         </div>
     )

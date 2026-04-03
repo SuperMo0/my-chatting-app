@@ -6,7 +6,7 @@ import EmojiPicker from 'emoji-picker-react';
 import { toast } from 'react-toastify';
 import { cn } from '../utils/utils';
 
-export default function ChatInput() {
+export default function ChatInput({ onSend }) {
     const [text, setText] = useState("");
     const [showEmoji, setShowEmoji] = useState(false);
     const { sendMessage } = useChatStore();
@@ -28,6 +28,7 @@ export default function ChatInput() {
         try {
             setText("");
             setShowEmoji(false);
+            if (onSend) onSend();
             await sendMessage(trimmedText);
         } catch (error) {
 
