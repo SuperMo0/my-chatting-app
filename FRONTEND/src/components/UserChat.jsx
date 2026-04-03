@@ -37,7 +37,7 @@ export default function UserChat() {
     );
 
     return (
-        <div className='h-full flex flex-col bg-white/10 dark:bg-slate-900/20 backdrop-blur-2xl border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden rounded-[2rem] transition-all duration-500'>
+        <div className='h-full flex flex-col bg-white/10 dark:bg-slate-900/20 backdrop-blur-2xl border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden rounded-4xl transition-all duration-500'>
             <div className="z-10">
                 <UserChatHeader />
             </div>
