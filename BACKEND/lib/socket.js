@@ -38,8 +38,6 @@ io.use(async (socket, next) => {
 
 
 io.on('connection', async (socket) => {
-    console.log('here');
-
     try {
 
         const userId = socket.request.userId;
