@@ -60,7 +60,7 @@ export async function signup(req: Request<{}, {}, UserSignup, {}>, res: Response
     res.status(201).json({ user });
 }
 
-export async function check(req: Request & { userId: string }, res: Response) {
+export async function check(req: Request, res: Response) {
     let user = await model.getUserById(req.userId);
     return res.json({ user });
 }

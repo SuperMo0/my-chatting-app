@@ -1,6 +1,6 @@
 import { verify } from "../utils/jwt.js";
 import type { Response, Request, NextFunction } from "express"
-export default async function protect(req: Request & { userId: string }, res: Response, next: NextFunction) {
+export default async function protect(req: Request, res: Response, next: NextFunction) {
     try {
         const jwt = req.cookies?.jwt;
         if (!jwt) {
