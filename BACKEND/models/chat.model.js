@@ -48,22 +48,35 @@ export async function getUserChats(userId) {
     }
 }
 
-export async function getChatMessages(chatId) {
+export async function getChatMessages(chatId, before, limit = 20) {
     try {
-        let result = await prisma.message.findMany({
+        const query = {
             where: { chatId: chatId },
-            orderBy: { timestamp: 'asc' },
+            orderBy: { timestamp: 'desc' },
+            take: limit + 1,
             include: { sender: { select: userProfileSelect } }
+        };
 
-        })
-        return result;
+        if (before) {
+            query.where.timestamp = { lt: new Date(before) };
+        }
 
+        let result = await prisma.message.findMany(query);
+
+        let hasMore = false;
+        if (result.length > limit) {
+            hasMore = true;
+            result.pop(); // Remove the extra item
+        }
+
+        // Reverse to return them in ascending order
+        result.reverse();
+
+        return { messages: result, hasMore };
     } catch (error) {
         console.log(error);
-
         throw "error while getting chat messages"
     }
-
 }
 export async function getUserFriendsRequestsTo(userId) {
     try {

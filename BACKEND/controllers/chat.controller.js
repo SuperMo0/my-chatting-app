@@ -14,8 +14,15 @@ export async function getUserChats(req, res) {
 
 export async function getChatMessages(req, res) {
     const { chatId } = req.params;
-    let messages = await model.getChatMessages(chatId);
-    res.json({ messages });
+    const { before, limit } = req.query;
+
+    let { messages, hasMore } = await model.getChatMessages(
+        chatId,
+        before,
+        parseInt(limit) || 20
+    );
+
+    res.json({ messages, hasMore });
 }
 
 export async function getUserFriendsRequestsTo(req, res) {
