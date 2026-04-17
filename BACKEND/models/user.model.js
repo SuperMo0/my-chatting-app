@@ -1,15 +1,15 @@
 import prisma from './../lib/prisma.js'
 
-export async function updateProfile(userId, name, avatar) {
+export async function updateProfile(update) {
 
     try {
         const user = await prisma.user.update({
             data: {
-                name: name,
-                avatar: avatar,
+                name: update.name,
+                avatar: update.url,
             },
             where: {
-                id: userId
+                id: update.userId
             },
             select: {
                 name: true,
