@@ -1,22 +1,21 @@
 {
-  "name": "chat2",
+  "name": "super-chat",
   "version": "1.0.0",
   "description": "real time chat app",
   "license": "ISC",
   "author": "",
-  "type": "commonjs",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "postinstall": "npm install --prefix BACKEND && npm install --prefix FRONTEND",
-    "build": "npm run build --prefix FRONTEND && npm run gen --prefix BACKEND",
-    "start": "npm run migrate --prefix BACKEND && npm run start --prefix BACKEND"
+    "build": "npm run build -w frontend && npm run gen -w backend",
+    "start": "npm run migrate -w backend && npm run start -w backend"
   },
   "engines": {
     "node": "24.12.0"
   },
   "workspaces": [
-    "BACKEND",
-    "FRONTEND",
-    "Shared"
+    "backend",
+    "frontend",
+    "shared"
   ]
 }
