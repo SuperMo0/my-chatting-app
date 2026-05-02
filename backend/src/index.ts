@@ -6,9 +6,13 @@ import userRouter from './routes/user.router.js'
 import cookieParser from 'cookie-parser';
 import cors from 'cors'
 import { app, server } from './lib/socket.js'
-import errorHandler from './middlewares/error-handler.js'
+import { errorHandler } from '@/errors/errorHandler.ts'
+import { notFound } from "./errors/notFound.ts";
 import path from "path";
-
+import type { GetSignUploadSignutureResponse } from "super-chat-shared/api";
+import { protect } from "./middlewares/protect.ts";
+import type { Response, Request } from "express";
+import { signuploadform } from "./utils/signUpload.ts";
 
 if (process.env.NODE_ENV === "development") {
     app.use(cors({
@@ -27,9 +31,20 @@ app.use('/api/app', chatRouter);
 
 app.use('/api/user', userRouter);
 
-if (process.env.NODE_ENV == "production") {
+app.use('/api/{*splat}', notFound);
 
-    let dist = path.join(process.cwd(), '/../FRONTEND/dist');
+app.get('/api/signupload', protect, function (req: Request, res: Response<GetSignUploadSignutureResponse>) {
+    const sig = signuploadform()
+    res.json({
+        signature: sig.signature,
+        timestamp: sig.timestamp,
+        cloudname: process.env.CLOUDINARY_CLOUD_NAME!,
+        apikey: process.env.CLOUDINARY_API_KEY!
+    })
+})
+
+if (process.env.NODE_ENV == "production") {
+    const dist = path.join(process.cwd(), '/../frontend/dist');
     app.use(express.static(dist));
     app.get('/{*splat}', (req, res) => {
         res.sendFile(path.join(dist, '/index.html'));

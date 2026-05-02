@@ -25,3 +25,11 @@ export const PutUpdateProfileResponseSchema = z.object({
 })
 
 export type PutUpdateProfileResponse = z.infer<typeof PutUpdateProfileResponseSchema>
+
+export const getSignUploadSignutureResponseSchema = z.object({
+    signature: z.string(),
+    timestamp: z.number(),
+    cloudname: z.string(),
+    apikey: z.string()
+})
+export type GetSignUploadSignutureResponse = z.infer<typeof getSignUploadSignutureResponseSchema>
