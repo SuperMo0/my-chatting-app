@@ -15,6 +15,7 @@
   "exports": {
     "./auth": "./src/auth.types.ts",
     "./chat": "./src/chat.types.ts",
-    "./api": "./src/api.types.ts"
+    "./api": "./src/api.types.ts",
+    "./user": "./src/user.types.ts"
   }
 }

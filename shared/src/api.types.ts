@@ -19,3 +19,9 @@ export const GetCheckResponseSchema = z.object({
 })
 
 export type GetCheckResponse = z.infer<typeof GetCheckResponseSchema>
+
+export const PutUpdateProfileResponseSchema = z.object({
+    user: safeUserSchema.nullable()
+})
+
+export type PutUpdateProfileResponse = z.infer<typeof PutUpdateProfileResponseSchema>
