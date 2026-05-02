@@ -14,11 +14,11 @@ datasource db {
 }
 
 model user {
-  id               String    @id @default(dbgenerated("gen_random_uuid ( )"))
+  id               String    @id @default(dbgenerated("gen_random_uuid ()"))
   email            String    @unique
   name             String
   password         String
-  avatar           String?   @default("https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/default-avatar-profile-picture-male-icon.png")
+  avatar           String?
   friendsTo        user[]    @relation("UsertoUser")
   friendsBy        user[]    @relation("UsertoUser")
   chats            chat[]
@@ -48,7 +48,6 @@ model message {
   senderId  String
   isRead    Boolean   @default(false)
   readAt    DateTime?
-  metaData  Json?     @default("{}")
 
   @@index([chatId, timestamp])
 }
