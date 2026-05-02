@@ -5,7 +5,6 @@ import { Prisma } from '../../generated/prisma/index.js';
 export const safeUserSelection = {
     id: true,
     name: true,
-    email: true,
     avatar: true,
 } satisfies Prisma.userSelect;
 

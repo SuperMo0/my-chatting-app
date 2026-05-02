@@ -19,6 +19,7 @@
     "@prisma/client": "^7.2.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.8.0",
+    "cookie": "^0.7.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -29,12 +30,13 @@
     "pg": "^8.16.3",
     "prisma": "^7.2.0",
     "socket.io": "^4.8.3",
+    "super-chat-shared": "^1.0.0",
     "tsdown": "^0.21.7",
-    "tsx": "^4.21.0",
-    "super-chat-shared": "^1.0.0"
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/cookie": "^0.6.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
