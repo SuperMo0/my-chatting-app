@@ -1,18 +1,15 @@
-import { verify } from "../utils/jwt.js";
-import type { Response, Request, NextFunction } from "express"
-export default async function protect(req: Request, res: Response, next: NextFunction) {
+import type { RequestHandler } from 'express'
+import { verify } from '@/lib/jwt.js';
+
+export const protect: RequestHandler = async (req, res, next) => {
     try {
-        const jwt = req.cookies?.jwt;
-        if (!jwt) {
-            return res.status(401).json({ message: "Unauthorized" })
-        }
-        let payLoad = await verify(jwt);
-        if (!payLoad) {
-            return res.status(401).json({ message: "Unauthorized" })
-        }
-        req.userId = payLoad.userId;
-        next();
-    } catch (error) {
-        return res.status(401).json({ message: "Unauthorized" })
+        const token = req.cookies.jwt;
+        const payload = await verify(token);
+        res.locals.userId = payload.userId;
+        return next()
+    } catch {
+        res.status(401).json({ message: "Unauthorized" });
     }
 }
+
+export default protect

@@ -2,7 +2,7 @@ import { Server } from "socket.io";
 import express from 'express'
 import http from 'http'
 import cookieParser from "cookie-parser";
-import { verify } from '@/utils/jwt.js'
+import { verify } from '@/lib/jwt.js'
 import { markMessageAsRead } from "../models/chat.model.js";
 
 
