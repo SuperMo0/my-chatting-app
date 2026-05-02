@@ -1,71 +1,69 @@
-import { sign } from "../utils/jwt.js";
-import * as model from "@/models/auth.model.js"
-import { compare, hash } from "../utils/bcrypt.js";
+import { sign } from "../lib/jwt.js";
+import * as authService from "../services/auth.service.js";
+import { compare, hash } from "../lib/bcrypt.js";
 import type { Request, Response } from "express";
-import type { UserLogin, UserSignup } from 'super-chat-shared/auth';
-import { UserLoginSchema, UserSignupSchema, UserOutSchema } from "super-chat-shared/auth";
-
-
-function isUniqueConstraintError(error: unknown): error is { code: string } {
-    return typeof error === "object" && error !== null && "code" in error && error.code === "P2002";
-}
+import { safeUserSchema, type LoginBody, type SafeUser, type SignupBody } from 'super-chat-shared/auth';
+import { AppError } from "@/errors/appError.ts";
+import type { GetCheckResponse, PostLoginResponse, PostSignupResponse } from 'super-chat-shared/api';
+import { isUniqueConstraintError } from "@/utils/prismaErrors.ts";
 
 
 
-export async function login(req: Request<{}, {}, UserLogin>, res: Response) {
+type LoginRequest = Request<{}, {}, LoginBody, {}>
+export async function login(req: LoginRequest, res: Response<PostLoginResponse>) {
 
-    const parseResult = UserLoginSchema.safeParse(req.body);
-
-    if (!parseResult.success) {
-        return res.status(400).json({ message: "Invalid input" });
-    }
-
-    let user = await model.getUserByEmail(parseResult.data.email);
+    const user = await authService.getUserByEmail(req.body.email);
 
     if (!user) {
-        return res.status(401).json({ message: "wrong credentials" })
+        throw new AppError(401, "Invalid credentials");
     }
 
-    let originalPassword = user.password;
+    const originalPassword = user.password;
 
-    let result = await compare(parseResult.data.password, originalPassword)
+    const result = await compare(req.body.password, originalPassword)
     if (!result) {
-        return res.status(401).json({ message: "wrong credentials" })
+        throw new AppError(401, "Invalid credentials");
     }
 
     await sign(user, res);
-    res.status(201).json({ user: UserOutSchema.parse(user) });
+
+    const safeUser = safeUserSchema.parse(user);
+
+    res.status(201).json({ user: safeUser });
 
 }
+type SignupRequest = Request<{}, {}, SignupBody, {}>
 
-export async function signup(req: Request<{}, {}, UserSignup, {}>, res: Response) {
+export async function signup(req: SignupRequest, res: Response<PostSignupResponse>) {
 
-    const parseResult = UserSignupSchema.safeParse(req.body);
-    if (!parseResult.success) {
-        return res.status(400).json({ message: "Invalid input" });
-    }
-    let { name, email, password } = parseResult.data;
-    let user;
-    password = await hash(password);
+    let user: SafeUser;
+    const password = await hash(req.body.password);
     try {
-        user = await model.insertUser(name, email, password);
+        user = await authService.insertUser({ ...req.body, password });
     } catch (error) {
         if (isUniqueConstraintError(error)) {
-            return res.status(409).json({ message: "Email already exists" });
+            throw new AppError(409, "Email already exists");
         }
         throw error;
     }
 
     await sign(user, res);
-    res.status(201).json({ user });
+    const safeUser = safeUserSchema.parse(user);
+    res.status(201).json({ user: safeUser });
 }
 
-export async function check(req: Request, res: Response) {
-    let user = await model.getUserById(req.userId);
-    return res.json({ user });
+export async function check(req: Request, res: Response<GetCheckResponse>) {
+    const userId = res.locals.userId;
+    const user = await authService.getUserById(userId);
+    if (!user) {
+        res.clearCookie("jwt");
+        return res.json({ user: null });
+    }
+    const safeUser = safeUserSchema.parse(user);
+    return res.json({ user: safeUser });
 }
 
 export async function logout(req: Request, res: Response) {
     res.clearCookie("jwt");
-    return res.json({ message: 'ok' });
+    return res.json({ user: null });
 }
