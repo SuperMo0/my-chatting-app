@@ -1,9 +1,8 @@
-
-import type { User } from "./user-type.js";
+import type { SafeUser } from "./auth.types.js";
 
 export type Chat = {
     id: string,
-    users: User[]
+    users: SafeUser[]
     name?: string,
     lastMessage?: Message
 }
@@ -16,7 +15,6 @@ export type Message = {
     timestamp: Date,
     isRead: boolean,
     readAt: Date | null,
-    metaData?: Record<string, any>
 }
 
 export type NewMessage = {
