@@ -1,25 +1,33 @@
-import type { SafeUser } from "./auth.types.js";
+import z from "zod";
+import { safeUserSchema } from "./auth.types.js";
 
-export type Chat = {
-    id: string,
-    users: SafeUser[]
-    name?: string,
-    lastMessage?: Message
-}
 
-export type Message = {
-    id: string,
-    content: string | null,
-    type: string,
-    senderId: string,
-    timestamp: Date,
-    isRead: boolean,
-    readAt: Date | null,
-}
 
-export type NewMessage = {
-    content: string | null,
-    type?: string,
-    metaData?: Record<string, any>
-}
+export const MessageSchema = z.object({
+    id: z.string(),
+    content: z.string().nullable(),
+    type: z.string(),
+    senderId: z.string(),
+    timestamp: z.date(),
+    isRead: z.boolean(),
+    readAt: z.date().nullable(),
+});
+
+export type Message = z.infer<typeof MessageSchema>;
+
+export const ChatSchema = z.object({
+    id: z.string(),
+    users: z.array(safeUserSchema),
+    name: z.string().nullable(),
+    lastMessage: MessageSchema.nullable()
+});
+
+export type Chat = z.infer<typeof ChatSchema>;
+
+export const NewMessageSchema = z.object({
+    content: z.string().nullable(),
+    type: z.string().optional(),
+});
+
+export type NewMessage = z.infer<typeof NewMessageSchema>;
 

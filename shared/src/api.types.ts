@@ -1,5 +1,6 @@
 import z from 'zod'
 import { safeUserSchema } from './auth.types.js'
+import { ChatSchema, type Chat } from './chat.types.js';
 
 
 export const PostLoginResponseSchema = z.object({
@@ -33,3 +34,17 @@ export const getSignUploadSignutureResponseSchema = z.object({
     apikey: z.string()
 })
 export type GetSignUploadSignutureResponse = z.infer<typeof getSignUploadSignutureResponseSchema>
+
+
+export const GetUserFriendsResponseSchema = z.object({
+    friends: z.array(safeUserSchema)
+})
+
+export type GetUserFriendsResponse = z.infer<typeof GetUserFriendsResponseSchema>
+
+
+export const GetUserChatsResponseSchema = z.object({
+    chats: z.array(ChatSchema)
+})
+
+export type GetUserChatsResponse = z.infer<typeof GetUserChatsResponseSchema>
