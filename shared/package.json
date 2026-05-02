@@ -13,8 +13,8 @@
     "@types/node": "^25.6.0"
   },
   "exports": {
-    "./auth": "./src/auth-type.ts",
-    "./chat": "./src/chat-types.ts",
-    "./user": "./src/user-type.ts"
+    "./auth": "./src/auth.types.ts",
+    "./chat": "./src/chat.types.ts",
+    "./api": "./src/api.types.ts"
   }
 }

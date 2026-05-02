@@ -12,10 +12,10 @@ export const signupBodySchema = loginBodySchema.extend({
 export const safeUserSchema = zod.object({
     name: zod.string(),
     email: zod.email(),
-    avatar: zod.url(),
+    avatar: zod.url().nullable(),
     id: zod.string()
 })
 
 export type SafeUser = zod.infer<typeof safeUserSchema>;
-export type UserLogin = zod.infer<typeof loginBodySchema>;
-export type UserSignup = zod.infer<typeof signupBodySchema>;
+export type LoginBody = zod.infer<typeof loginBodySchema>;
+export type SignupBody = zod.infer<typeof signupBodySchema>;
