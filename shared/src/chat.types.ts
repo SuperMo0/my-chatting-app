@@ -24,10 +24,20 @@ export const ChatSchema = z.object({
 
 export type Chat = z.infer<typeof ChatSchema>;
 
-export const NewMessageSchema = z.object({
+export const NewMessageBodySchema = z.object({
     content: z.string().nullable(),
     type: z.string().optional(),
 });
 
-export type NewMessage = z.infer<typeof NewMessageSchema>;
+export type NewMessageBody = z.infer<typeof NewMessageBodySchema>;
+
+export const FriendRequestSchema = z.object({
+    id: z.string(),
+    senderId: z.string(),
+    receiverId: z.string(),
+    sender: safeUserSchema.optional(),
+    receiver: safeUserSchema.optional(),
+});
+
+export type FriendRequest = z.infer<typeof FriendRequestSchema>;
 

@@ -1,6 +1,6 @@
 import z from 'zod'
 import { safeUserSchema } from './auth.types.js'
-import { ChatSchema, type Chat } from './chat.types.js';
+import { ChatSchema, type Chat, FriendRequestSchema, type FriendRequest, MessageSchema } from './chat.types.js';
 
 
 export const PostLoginResponseSchema = z.object({
@@ -48,3 +48,55 @@ export const GetUserChatsResponseSchema = z.object({
 })
 
 export type GetUserChatsResponse = z.infer<typeof GetUserChatsResponseSchema>
+
+export const GetUserFriendsRequestsToResponseSchema = z.object({
+    requestsTo: z.array(FriendRequestSchema)
+})
+
+export type GetUserFriendsRequestsToResponse = z.infer<typeof GetUserFriendsRequestsToResponseSchema>
+
+export const GetUserFriendsRequestsByResponseSchema = z.object({
+    requestsBy: z.array(FriendRequestSchema)
+})
+
+export type GetUserFriendsRequestsByResponse = z.infer<typeof GetUserFriendsRequestsByResponseSchema>
+
+
+export const CreateFriendRequestResponseSchema = z.object({
+    request: FriendRequestSchema
+})
+
+export type CreateFriendRequestResponse = z.infer<typeof CreateFriendRequestResponseSchema>
+
+export const AcceptFriendRequestResponseSchema = z.object({
+    sender: safeUserSchema,
+    chat: ChatSchema
+})
+
+export type AcceptFriendRequestResponse = z.infer<typeof AcceptFriendRequestResponseSchema>
+
+export const CreateNewMessageResponseSchema = z.object({
+    message: MessageSchema,
+    chat: ChatSchema
+})
+
+export type CreateNewMessageResponse = z.infer<typeof CreateNewMessageResponseSchema>
+
+export const GetAllUsersResponseSchema = z.object({
+    users: z.array(safeUserSchema)
+})
+
+export type GetAllUsersResponse = z.infer<typeof GetAllUsersResponseSchema>
+
+export const GetChatMessagesResponseSchema = z.object({
+    messages: z.array(MessageSchema),
+    nextCursor: z.string().nullable()
+})
+
+export type GetChatMessagesResponse = z.infer<typeof GetChatMessagesResponseSchema>
+
+export const MarkMessageAsReadResponseSchema = z.object({
+    message: MessageSchema
+})
+
+export type MarkMessageAsReadResponse = z.infer<typeof MarkMessageAsReadResponseSchema>

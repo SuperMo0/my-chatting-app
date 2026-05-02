@@ -11,7 +11,6 @@ export const signupBodySchema = loginBodySchema.extend({
 
 export const safeUserSchema = zod.object({
     name: zod.string(),
-    email: zod.email(),
     avatar: zod.url().nullable(),
     id: zod.string()
 })
