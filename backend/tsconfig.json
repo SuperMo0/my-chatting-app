@@ -20,6 +20,8 @@
     "moduleResolution": "nodenext",
     "skipLibCheck": true,
     "allowJs": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "paths": {
       "@/*": [
         "./src/*"
@@ -28,6 +30,7 @@
   },
   "exclude": [
     "./generated",
-    "./prisma.config.js"
+    "./prisma.config.js",
+    "dist"
   ],
 }
