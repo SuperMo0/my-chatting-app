@@ -1,16 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { IoMdImage } from "react-icons/io";
 import { MdEmojiEmotions } from "react-icons/md";
-import { useChatStore } from '../stores/chat.store';
 import EmojiPicker from 'emoji-picker-react';
 import { toast } from 'react-toastify';
 import { cn } from '../utils/utils';
+import { useCreateNewMessage } from '../hooks/use-chat-mutations';
 
-export default function ChatInput({ onSend }) {
+type ChatInputProps = {
+    onSend?: () => void;
+    chatId: string | null;
+};
+export default function ChatInput({ onSend, chatId }: ChatInputProps) {
     const [text, setText] = useState("");
     const [showEmoji, setShowEmoji] = useState(false);
-    const { sendMessage } = useChatStore();
-    const textareaRef = useRef(null);
+    const { mutateAsync: sendMessage } = useCreateNewMessage();
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         if (textareaRef.current) {
@@ -19,27 +23,26 @@ export default function ChatInput({ onSend }) {
         }
     }, [text]);
 
-    async function handleSendMessage(e) {
+    async function handleSendMessage(e: ChangeEvent<HTMLFormElement>) {
         if (e) e.preventDefault();
         const trimmedText = text.trim();
 
-        if (!trimmedText) return;
+        if (!trimmedText || !chatId) return;
 
         try {
             setText("");
             setShowEmoji(false);
             if (onSend) onSend();
-            await sendMessage(trimmedText);
+            await sendMessage({ chatId, messageData: { content: trimmedText } });
         } catch (error) {
-
             toast.error("Failed to send message");
         }
     }
 
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            handleSendMessage();
+            handleSendMessage(e as unknown as ChangeEvent<HTMLFormElement>);
         }
     };
 
@@ -50,7 +53,6 @@ export default function ChatInput({ onSend }) {
                     <div className="fixed inset-0" onClick={() => setShowEmoji(false)} />
                     <div className="relative shadow-2xl rounded-2xl overflow-hidden">
                         <EmojiPicker
-                            theme="auto"
                             onEmojiClick={(e) => setText(prev => prev + e.emoji)}
                         />
                     </div>
@@ -61,7 +63,7 @@ export default function ChatInput({ onSend }) {
                 <div className='group bg-slate-100 dark:bg-slate-800 rounded-2xl border-2 border-transparent focus-within:border-blue/30 focus-within:bg-white dark:focus-within:bg-slate-900 transition-all duration-300 shadow-inner'>
                     <textarea
                         ref={textareaRef}
-                        rows="1"
+                        rows={1}
                         value={text}
                         onKeyDown={handleKeyDown}
                         onChange={(e) => setText(e.target.value)}
