@@ -9,7 +9,7 @@ export interface ServerToClientEvents {
     userChatsChangeEvent: () => void
 }
 export interface ClientToServerEvents {
-    messageIsReadEvent: (payload: Message) => void
+    // messageIsReadEvent: (payload: Message) => void
 
 }
 export interface InterServerEvents { /* ... */ }

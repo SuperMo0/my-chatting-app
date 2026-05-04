@@ -1,6 +1,6 @@
 import type { UpdateProfileBody } from "super-chat-shared/user";
 import prisma from '@/lib/prisma.js';
-import { safeUserSelection } from "./auth.service.ts";
+import { safeUserSchema } from "super-chat-shared/auth";
 
 export async function updateProfile(profile: UpdateProfileBody, userId: string) {
 
@@ -11,11 +11,9 @@ export async function updateProfile(profile: UpdateProfileBody, userId: string) 
         data: {
             ...(profile.name && { name: profile.name }),
             ...(profile.avatar && { avatar: profile.avatar })
-        },
-        select: safeUserSelection
+        }
     });
-    return result;
 
-
-
+    const safeUser = safeUserSchema.parse(result);
+    return safeUser;
 }
