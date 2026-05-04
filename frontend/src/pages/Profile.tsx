@@ -1,61 +1,76 @@
-import React, { useState, useRef } from 'react'
-import { useAuthStore } from '../stores/auth.store';
+import { useState, useRef, useEffect, type ChangeEvent } from 'react'
+import { useCheckSession } from '../hooks/use-auth-queries';
+import { useLogout, useUpdateProfile } from '../hooks/use-auth-mutations';
 import Cropper from '../components/Cropper';
-import api from '../lib/axios';
 import { toast } from 'react-toastify';
-import { useChatStore } from '../stores/chat.store';
+import { useUserFriends } from '../hooks/use-chat-queries';
 import { CameraAlt, Logout, DarkMode, LightMode } from '@mui/icons-material';
 
-export default function Profile({ toggleDark, dark }) {
-    const { authUser, check, logout } = useAuthStore();
-    const [name, setName] = useState(authUser.name);
-    const [image, setImage] = useState(null);
+interface ProfileProps {
+    toggleDark: () => void;
+    dark: boolean;
+}
+
+export default function Profile({ toggleDark, dark }: ProfileProps) {
+    const { data: authUser } = useCheckSession();
+    const { mutate: logout } = useLogout();
+    const { mutateAsync: updateProfile } = useUpdateProfile();
+    const { data: friends } = useUserFriends();
+
+    const [name, setName] = useState(authUser?.name || '');
+    const [image, setImage] = useState<string | null>(null);
     const [modal, setModal] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const inputRef = useRef();
-    const { friends } = useChatStore();
+    const inputRef = useRef<HTMLInputElement>(null);
 
-    function handleImageUpload(e) {
+    useEffect(() => {
+        if (authUser) setName(authUser.name);
+    }, [authUser]);
+
+    function handleImageUpload(e: ChangeEvent<HTMLInputElement>) {
+        if (!e.target.files?.[0]) return;
         if (!e.target.files[0].type.startsWith('image')) {
             toast.error("Please upload an image file");
             return;
         }
-        let fileReader = new FileReader()
-        fileReader.onload = (ev) => {
-            setImage(ev.target.result);
-            setModal(true);
-        }
-        fileReader.readAsDataURL(e.target.files[0]);
+        setImage(URL.createObjectURL(e.target.files[0]));
+        setModal(true);
     }
 
     async function handleSave() {
         if (!name.trim()) return toast.error("Name cannot be empty");
         setIsSaving(true);
         const toastId = toast.loading('Syncing changes...');
+
         try {
-            let form = new FormData()
-            if (image && image.startsWith('data:')) {
-                let response = await fetch(image);
-                let imageBlob = await response.blob();
-                form.append('avatar', imageBlob, 'avatar.jpg');
+            let fileToUpload: File | undefined = undefined;
+            if (image && (image.startsWith('data:') || image.startsWith('blob:'))) {
+                const response = await fetch(image);
+                const blob = await response.blob();
+                fileToUpload = new File([blob], 'avatar.jpg', { type: blob.type });
             }
-            form.append('name', name);
-            const result = await api.putForm('/user', form);
-            toast.update(toastId, { render: result.data?.message, type: "success", isLoading: false, autoClose: 2000 });
-            check();
+
+            await updateProfile({
+                name: name !== authUser?.name ? name : undefined,
+                image: fileToUpload
+            });
+
+            toast.update(toastId, { render: "Profile updated successfully!", type: "success", isLoading: false, autoClose: 2000 });
         } catch (error) {
-            toast.update(toastId, { render: "Upload failed", type: "error", isLoading: false, autoClose: 2000 });
+            toast.update(toastId, { render: "Profile update failed", type: "error", isLoading: false, autoClose: 2000 });
         } finally {
             setIsSaving(false);
         }
     }
+
+    if (!authUser) return null;
 
     return (
         <div className='h-full overflow-y-auto bg-white/40 dark:bg-slate-900/20 p-6 no-scrollbar'>
             {modal && (
                 <div className='fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4'>
                     <div className="w-full max-w-lg bg-slate-900 rounded-3xl p-6 shadow-2xl">
-                        <Cropper image={image} closeModal={(cropped) => { setModal(false); setImage(cropped); }} />
+                        <Cropper image={image} closeModal={(cropped: any) => { setModal(false); setImage(cropped); }} />
                     </div>
                 </div>
             )}
@@ -71,19 +86,18 @@ export default function Profile({ toggleDark, dark }) {
                 <div className="flex flex-col items-center space-y-4">
                     <div className='relative group'>
                         <div className='w-40 h-40 rounded-full ring-4 ring-blue ring-offset-4 ring-offset-transparent overflow-hidden shadow-2xl transition-transform group-hover:scale-105'>
-                            <img className='w-full h-full object-cover' src={image || authUser.avatar} alt="profile" />
+                            <img className='w-full h-full object-cover' src={(image || authUser.avatar) ?? undefined} alt="profile" />
                         </div>
                         <button
-                            onClick={() => inputRef.current.click()}
+                            onClick={() => inputRef.current?.click()}
                             className="absolute bottom-1 right-1 p-3 bg-blue text-white rounded-full shadow-lg hover:scale-110 transition-transform"
                         >
                             <CameraAlt fontSize="small" />
                         </button>
-                        <input hidden ref={inputRef} accept='image/*' onInput={handleImageUpload} type="file" />
+                        <input hidden ref={inputRef} accept='image/*' onChange={handleImageUpload} type="file" />
                     </div>
                     <div className="text-center">
                         <h3 className="text-xl font-bold">{authUser.name}</h3>
-                        <p className="text-sm text-slate-500 font-medium">@{authUser.email.split('@')[0]}</p>
                     </div>
                 </div>
 
@@ -117,7 +131,7 @@ export default function Profile({ toggleDark, dark }) {
                 </div>
 
                 <div className="pt-4 border-t border-slate-200 dark:border-slate-800 text-center">
-                    <button onClick={logout} className="text-red-400 hover:text-red-500 font-bold flex items-center gap-2 mx-auto transition-colors">
+                    <button onClick={() => { logout() }} className="text-red-400 hover:text-red-500 font-bold flex items-center gap-2 mx-auto transition-colors">
                         <Logout fontSize="small" /> Sign Out
                     </button>
                 </div>
