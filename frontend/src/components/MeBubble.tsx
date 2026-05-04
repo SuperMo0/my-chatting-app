@@ -1,19 +1,19 @@
-import React from 'react'
-import { useAuthStore } from '../stores/auth.store.js';
-import { fixDate } from '../utils/utils.js';
-import { cn } from '../utils/utils.js';
+import type { Message } from 'super-chat-shared/chat';
+import { useCheckSession } from '../hooks/use-auth-queries.ts';
+import { fixDate } from '../utils/Dates.util.js';
 
-export default function MeBubble({ message }) {
-    const { authUser } = useAuthStore();
+export default function MeBubble({ message }: { message: Message }) {
+    const { data: authUser } = useCheckSession();
     const isGlobal = message.chatId === "1";
 
+    if (!authUser) return null;
     return (
         <div className="chat chat-end animate-in fade-in slide-in-from-right-3 duration-300">
             <div className="chat-image avatar">
                 <div className="w-10 rounded-full ring-2 ring-blue/20">
                     <img
                         alt="Your avatar"
-                        src={authUser.avatar}
+                        src={authUser.avatar || `https://ui-avatars.com/api/?name=${authUser.name}&background=random&color=fff&size=128`}
                         draggable={false}
                     />
                 </div>
@@ -24,20 +24,13 @@ export default function MeBubble({ message }) {
                 <time className="text-[10px] opacity-40">{fixDate(message.timestamp)}</time>
             </div>
 
-            <div className={cn(
-                "chat-bubble shadow-md text-white max-w-[85%] md:max-w-[70%] text-sm leading-relaxed",
-                message.isOptimistic ? "bg-blue/60" : "bg-blue"
-            )}>
+            <div className={"chat-bubble shadow-md text-white max-w-[85%] md:max-w-[70%] text-sm leading-relaxed bg-blue"}>
                 {message.content}
             </div>
 
             {!isGlobal && (
                 <div className="chat-footer py-1 text-[10px] font-bold opacity-50 uppercase tracking-tighter">
-                    {message.isOptimistic ? (
-                        <span className="animate-pulse">Sending...</span>
-                    ) : (
-                        message.isRead ? `✓ Seen ${fixDate(message.readAt)}` : '✓ Delivered'
-                    )}
+                    {message.isRead ? `✓ Seen ${fixDate(message.readAt!)}` : '✓ Delivered'}
                 </div>
             )}
         </div>

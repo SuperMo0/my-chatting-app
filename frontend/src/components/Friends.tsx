@@ -1,32 +1,10 @@
 import React from 'react'
 import UsersList from './UsersList'
-import { useChatStore } from '../stores/chat.store'
-import { useNavigate } from 'react-router';
 import PeopleIcon from '@mui/icons-material/People';
+import { useUserFriends } from '../hooks/use-chat-queries';
 
 export default function Friends() {
-    const { friends, setSelectedChat, chats } = useChatStore();
-    const navigate = useNavigate();
-
-    const friendsDataCards = (friends || []).map((user) => ({
-        ...user,
-        actionTitle: "Message",
-        variant: 'blue',
-        onAction: () => handleChat(user)
-    }));
-
-    function handleChat(friend) {
-        const targetChat = chats?.find((c) => {
-            return (
-                c.id !== "1" && c.users.some(u => u.id === friend.id)
-            );
-        });
-
-        if (targetChat) {
-            setSelectedChat(targetChat);
-            navigate('/');
-        }
-    }
+    const { data: friends } = useUserFriends();
 
     if (!friends || friends.length === 0) {
         return (
@@ -44,7 +22,7 @@ export default function Friends() {
 
     return (
         <div className="h-full overflow-hidden animate-in slide-in-from-bottom-2 duration-300">
-            <UsersList users={friendsDataCards} />
+            <UsersList users={friends || []} />
         </div>
     );
 }

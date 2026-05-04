@@ -1,23 +1,24 @@
-import React from 'react'
 import { NavLink } from 'react-router'
 import { RiChatSmile3Fill } from "react-icons/ri";
 import { MdPeopleAlt } from "react-icons/md";
 import { BiSolidUser } from "react-icons/bi";
-import { useChatStore } from '../stores/chat.store';
-import { useAuthStore } from '../stores/auth.store';
+import { useCheckSession } from '../hooks/use-auth-queries';
+import { useUserChats, useUserFriendsRequestsTo } from '../hooks/use-chat-queries';
 import Badge from '@mui/material/Badge';
+import { cn } from '../utils/utils';
 
 export default function Panel() {
-    const { chats, requestsToUser } = useChatStore();
-    const { authUser } = useAuthStore();
+    const { data: chats } = useUserChats();
+    const { data: requestsToUser } = useUserFriendsRequestsTo();
+    const { data: authUser } = useCheckSession();
 
     const unreadChats = chats?.filter(c =>
         c.lastMessage && c.lastMessage.senderId !== authUser?.id && !c.lastMessage.isRead
     ).length || 0;
 
-    const unreadRequests = requestsToUser?.filter(r => !r.isSeen).length || 0;
+    const unreadRequests = requestsToUser?.filter((r: any) => !r.isSeen).length || 0;
 
-    const NavItem = ({ to, icon: Icon, label, badge }) => (
+    const NavItem = ({ to, icon: Icon, label, badge }: { to: string, icon: React.ElementType, label: string, badge?: number }) => (
         <NavLink to={to} className={({ isActive }) => cn(
             "flex flex-col items-center gap-1 p-3 rounded-2xl transition-all duration-300 group",
             isActive ? "bg-blue/10 text-blue" : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -37,5 +38,3 @@ export default function Panel() {
         </div>
     );
 }
-
-const cn = (...classes) => classes.filter(Boolean).join(' ');

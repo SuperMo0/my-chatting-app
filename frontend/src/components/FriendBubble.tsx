@@ -1,16 +1,23 @@
-import React from 'react'
-import { fixDate } from '../utils/utils.js';
+import type { Message } from 'super-chat-shared/chat';
+import { fixDate } from '../utils/Dates.util.js';
+import { useAllUsers } from '../hooks/use-chat-queries';
 
-export default function FriendBubble({ message }) {
-    const friend = message.sender || { name: "User", avatar: "" };
+type FriendBubbleProps = {
+    message: Message
 
+}
+export default function FriendBubble({ message }: FriendBubbleProps) {
+
+    const { data: people } = useAllUsers();
+    // todo: we can optimize this next line by either embedding the user in every message or passing the user as a prop and using a map.
+    const friend = people?.find((user) => user.id === message.senderId) || { name: "Unknown", avatar: null };
     return (
         <div className="chat chat-start animate-in fade-in slide-in-from-left-3 duration-300">
             <div className="chat-image avatar">
                 <div className="w-10 rounded-full ring-2 ring-slate-200 dark:ring-slate-800">
                     <img
                         alt="Friend avatar"
-                        src={friend.avatar}
+                        src={friend.avatar || `https://ui-avatars.com/api/?name=${friend.name}&background=random&color=fff&size=128`}
                         draggable={false}
                     />
                 </div>
