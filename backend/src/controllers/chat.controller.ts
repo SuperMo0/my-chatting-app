@@ -106,8 +106,8 @@ export async function createNewMessage(req: CreateNewMessageRequest, res: Respon
 
     const io = req.app.get("io") as AppSocket;
     chat.users.forEach(user => {
-        if (user.id === userId) return;
         io.to(user.id).emit("userChatsChangeEvent");
+        io.to(user.id).emit("newMessageEvent", message);
     });
 }
 

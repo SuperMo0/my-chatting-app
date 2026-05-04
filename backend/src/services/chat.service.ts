@@ -29,6 +29,11 @@ export async function getUserChats(userId: string) {
         include: {
             users: { select: safeUserSelection },
             lastMessage: true
+        },
+        orderBy: {
+            lastMessage: {
+                timestamp: 'desc'
+            }
         }
     });
     return result;
@@ -157,8 +162,8 @@ export async function getChatMessages(chatId: string, cursor: string | null, lim
             skip: 1,
         }),
         orderBy: [
-            { createdAt: 'desc' },
-            { id: 'desc' }
+            { timestamp: 'desc' },
+            { id: 'desc' },
         ],
         take: limit,
     });

@@ -5,7 +5,7 @@ import chatRouter from './routes/chat.router.js'
 import userRouter from './routes/user.router.js'
 import cookieParser from 'cookie-parser';
 import cors from 'cors'
-import { app, server } from './lib/socket.js'
+import { app, server, io } from './lib/socket.js'
 import { errorHandler } from '@/errors/errorHandler.ts'
 import { notFound } from "./errors/notFound.ts";
 import path from "path";
@@ -21,17 +21,17 @@ if (process.env.NODE_ENV === "development") {
     }))
 }
 
+app.set('io', io);
+
 app.use(cookieParser());
 
 app.use(express.json());
 
 app.use('/api/auth', authRouter);
 
-app.use('/api/app', chatRouter);
+app.use('/api/chat', chatRouter);
 
 app.use('/api/user', userRouter);
-
-app.use('/api/{*splat}', notFound);
 
 app.get('/api/signupload', protect, function (req: Request, res: Response<GetSignUploadSignutureResponse>) {
     const sig = signuploadform()
@@ -42,6 +42,8 @@ app.get('/api/signupload', protect, function (req: Request, res: Response<GetSig
         apikey: process.env.CLOUDINARY_API_KEY!
     })
 })
+
+app.use('/api/{*splat}', notFound);
 
 if (process.env.NODE_ENV == "production") {
     const dist = path.join(process.cwd(), '/../frontend/dist');
