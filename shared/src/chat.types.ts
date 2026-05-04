@@ -11,6 +11,7 @@ export const MessageSchema = z.object({
     timestamp: z.date(),
     isRead: z.boolean(),
     readAt: z.date().nullable(),
+    chatId: z.string()
 });
 
 export type Message = z.infer<typeof MessageSchema>;
