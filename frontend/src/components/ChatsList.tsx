@@ -1,6 +1,6 @@
 import { useChatStore } from '../stores/chat.store.js'
 import { cn } from '../utils/utils.js';
-import { getFriend } from '../utils/chat.util.js';
+import { getFriend } from '../utils/chat.util';
 import { useCheckSession } from '../hooks/use-auth-queries.ts';
 import { useUserChats } from '../hooks/use-chat-queries.ts';
 import { ChatSkeleton } from './ui/chat-skeleton.tsx';
