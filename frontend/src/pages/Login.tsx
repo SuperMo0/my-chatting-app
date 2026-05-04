@@ -1,19 +1,20 @@
-import { useAuthStore } from "../stores/auth.store";
 import { NavLink } from "react-router";
 import { ClipLoader } from "react-spinners";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { UserLoginSchema, type UserLogin } from "super-chat-shared/auth";
+import { type LoginBody, loginBodySchema } from "super-chat-shared/auth";
+import Input from "../components/ui/Input";
+import { useLogin } from "./../hooks/use-auth-mutations";
 export default function Login() {
 
-    const { login, isSigningIn } = useAuthStore();
+    const login = useLogin();
 
     const { register, handleSubmit, formState } = useForm({
-        resolver: zodResolver(UserLoginSchema)
+        resolver: zodResolver(loginBodySchema)
     });
 
-    function handleFormSubmit(data: UserLogin) {
-        login(data);
+    function handleFormSubmit(data: LoginBody) {
+        login.mutate(data);
     }
 
     return (
@@ -28,29 +29,27 @@ export default function Login() {
                     <form noValidate onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
                         <div className="space-y-2">
                             <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Email Address</label>
-                            <input
+                            <Input
                                 required
                                 {...register("email")}
                                 type="email"
-                                className="input input-bordered w-full rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:border-blue"
                                 placeholder="name@company.com"
                             />
                             <p className="text-red-500 text-xs">{formState.errors.email?.message}</p>
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Password</label>
-                            <input
+                            <Input
                                 required
                                 {...register("password")}
                                 type="password"
-                                className="input input-bordered w-full rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:border-blue"
                                 placeholder="••••••••"
                             />
                             <p className="text-red-500 text-xs">{formState.errors.password?.message}</p>
                         </div>
 
-                        <button disabled={isSigningIn} className="btn bg-blue hover:bg-blue-600 border-0 text-white w-full rounded-xl h-12 btn-glow">
-                            {isSigningIn ? <ClipLoader size={20} color="white" /> : "Sign In"}
+                        <button disabled={login.isPending} className="btn bg-blue hover:bg-blue-600 border-0 text-white w-full rounded-xl h-12 btn-glow">
+                            {login.isPending ? <ClipLoader size={20} color="white" /> : "Sign In"}
                         </button>
                     </form>
 

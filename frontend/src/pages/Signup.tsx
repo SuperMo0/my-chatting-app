@@ -1,19 +1,20 @@
-import { useAuthStore } from '../stores/auth.store.js';
 import { ClipLoader } from 'react-spinners';
 import { NavLink } from 'react-router';
-import { UserSignupSchema, type UserSignup } from 'super-chat-shared/auth';
+import { signupBodySchema, type SignupBody } from 'super-chat-shared/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import Input from '../components/ui/Input.js';
+import { useSignup } from './../hooks/use-auth-mutations.js';
 
 export default function Signup() {
-    const { signup, isSigningUp } = useAuthStore();
 
+    const signup = useSignup();
     const { register, handleSubmit, formState } = useForm({
-        resolver: zodResolver(UserSignupSchema)
+        resolver: zodResolver(signupBodySchema)
     });
 
-    function handleFormSubmit(data: UserSignup) {
-        signup(data);
+    function handleFormSubmit(data: SignupBody) {
+        signup.mutate(data);
     }
 
     return (
@@ -28,10 +29,9 @@ export default function Signup() {
                     <form noValidate onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                         <div className="space-y-1">
                             <label htmlFor='name' className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Full Name</label>
-                            <input
+                            <Input
                                 {...register("name")}
                                 type="text"
-                                className="input input-bordered w-full rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:border-blue"
                                 placeholder="John Doe"
                                 id='name'
                             />
@@ -40,10 +40,9 @@ export default function Signup() {
                         </div>
                         <div className="space-y-1">
                             <label htmlFor='email' className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Email Address</label>
-                            <input
+                            <Input
                                 {...register("email")}
                                 type="email"
-                                className="input input-bordered w-full rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:border-blue"
                                 placeholder="name@email.com"
                                 id='email'
                             />
@@ -51,18 +50,17 @@ export default function Signup() {
                         </div>
                         <div className="space-y-1">
                             <label htmlFor='password' className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Password</label>
-                            <input
+                            <Input
                                 {...register("password")}
                                 type="password"
-                                className="input input-bordered w-full rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:border-blue"
                                 placeholder="••••••••"
                                 id='password'
                             />
                             <p className="text-red-500 text-xs">{formState.errors.password?.message}</p>
                         </div>
 
-                        <button disabled={isSigningUp} className="btn bg-blue hover:bg-blue-600 border-0 text-white w-full rounded-xl h-12 btn-glow mt-4">
-                            {isSigningUp ? <ClipLoader size={20} color="white" /> : "Create Account"}
+                        <button disabled={signup.isPending} className="btn bg-blue hover:bg-blue-600 border-0 text-white w-full rounded-xl h-12 btn-glow mt-4">
+                            {signup.isPending ? <ClipLoader size={20} color="white" /> : "Create Account"}
                         </button>
                     </form>
 
