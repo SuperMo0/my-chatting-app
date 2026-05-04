@@ -1,0 +1,72 @@
+import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useChatStore } from '../stores/chat.store';
+import type { Message } from 'super-chat-shared/chat';
+import type { GetChatMessagesResponse } from 'super-chat-shared/api';
+
+export const useGlobalSocketListeners = () => {
+    const queryClient = useQueryClient();
+    const { socket } = useChatStore();
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleMessageRead = (updatedMessage: Message) => {
+            queryClient.setQueryData(['chat', 'messages', updatedMessage.chatId], (oldData: any) => {
+                if (!oldData || !oldData.pages) return oldData;
+
+                return {
+                    ...oldData,
+                    pages: oldData.pages.map((page: GetChatMessagesResponse) => ({
+                        ...page,
+                        messages: page.messages.map((msg: Message) =>
+                            msg.id === updatedMessage.id ? updatedMessage : msg
+                        )
+                    }))
+                };
+            });
+        };
+
+        const handleNewMessage = (newMessage: Message) => {
+            queryClient.setQueryData(['chat', 'messages', newMessage.chatId], (oldData: any) => {
+                if (!oldData || !oldData.pages || oldData.pages.length === 0) return oldData;
+                const newPages = [...oldData.pages];
+                newPages[0] = {
+                    ...newPages[0],
+                    messages: [newMessage, ...newPages[0].messages]
+                };
+
+                return {
+                    ...oldData,
+                    pages: newPages
+                };
+            });
+        };
+
+        const handleFriendRequestsChange = () => {
+            queryClient.invalidateQueries({ queryKey: ['chat', 'requests-to'] });
+        };
+
+        const handleFriendsListChange = () => {
+            queryClient.invalidateQueries({ queryKey: ['chat', 'friends'] });
+        };
+
+        const handleUserChatsChange = () => {
+            queryClient.invalidateQueries({ queryKey: ['chat', 'chats'] });
+        };
+
+        socket.on('messageIsReadEvent', handleMessageRead);
+        socket.on('newMessageEvent', handleNewMessage);
+        socket.on('friendRequestsToUserListChangeEvent', handleFriendRequestsChange);
+        socket.on('friendsListChangeEvent', handleFriendsListChange);
+        socket.on('userChatsChangeEvent', handleUserChatsChange);
+
+        return () => {
+            socket.off('messageIsReadEvent', handleMessageRead);
+            socket.off('newMessageEvent', handleNewMessage);
+            socket.off('friendRequestsToUserListChangeEvent', handleFriendRequestsChange);
+            socket.off('friendsListChangeEvent', handleFriendsListChange);
+            socket.off('userChatsChangeEvent', handleUserChatsChange);
+        };
+    }, [socket, queryClient]);
+};
