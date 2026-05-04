@@ -1,37 +1,30 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Outlet } from 'react-router'
 import Panel from '../components/Panel'
 import { useChatStore } from '../stores/chat.store';
-import { ClipLoader } from 'react-spinners';
+import { useUserChats, useUserFriendsRequestsTo } from '../hooks/use-chat-queries';
+import { useGlobalSocketListeners } from '../hooks/use-global-socket-listeners';
+import { useAllUsers } from './../hooks/use-chat-queries';
+import LoadingScreen from './../components/ui/loading-screen';
 
 export default function Home() {
-    const {
-        connectSocket,
-        getChats,
-        onlineUsers,
-        getRequestsToUser,
-        isGettingChats,
-        isGettingRequestsToUser
-    } = useChatStore();
+    const { connectSocket, disconnectSocket, onlineUsers } = useChatStore();
+    const { isLoading: isGettingChats } = useUserChats();
+    const { isLoading: isGettingRequestsToUser } = useUserFriendsRequestsTo();
+    const { isLoading: isGettingAllUsers } = useAllUsers();
+
+    useGlobalSocketListeners();
 
     useEffect(() => {
-        getChats();
-        getRequestsToUser();
-        const socket = connectSocket();
+        connectSocket();
         return () => {
-            socket?.disconnect(); console.log('disconnect');
+            disconnectSocket();
+            console.log('disconnect');
         };
     }, []);
 
-    // console.log(onlineUsers, isGettingChats, isGettingRequestsToUser);
-
-    if (isGettingChats || !onlineUsers || isGettingRequestsToUser) {
-        return (
-            <div className='flex flex-col items-center justify-center h-screen bg-base-100 gap-4'>
-                <ClipLoader color='#3b82f6' size={50} />
-                <p className="text-sm font-medium animate-pulse">Loading...</p>
-            </div>
-        );
+    if (isGettingChats || !onlineUsers || isGettingRequestsToUser || isGettingAllUsers) {
+        return <LoadingScreen />
     }
 
     return (
