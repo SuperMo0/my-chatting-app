@@ -1,25 +1,11 @@
-import React from 'react'
 import UsersList from './UsersList';
-import { useChatStore } from '../stores/chat.store';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import { useUserFriendsRequestsTo } from '../hooks/use-chat-queries';
 
 export default function Requests() {
-    const { requestsToUser, acceptRequest } = useChatStore();
+    const { data: requestsToUser } = useUserFriendsRequestsTo();
 
-    const usersDataCards = (requestsToUser || []).map((r) => {
-        const user = { ...r.sender };
-
-        return {
-            ...user,
-            onAction: () => handleAccept(r),
-            actionTitle: "Accept",
-            variant: 'success'
-        };
-    });
-
-    function handleAccept(request) {
-        acceptRequest(request);
-    }
+    const requestsSenders = (requestsToUser || []).map(r => r.sender!);
 
     if (!requestsToUser || requestsToUser.length === 0) {
         return (
@@ -42,7 +28,7 @@ export default function Requests() {
                     Incoming Requests ({requestsToUser.length})
                 </p>
             </div>
-            <UsersList users={usersDataCards} />
+            <UsersList users={requestsSenders} />
         </div>
     );
 }
