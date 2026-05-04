@@ -1,51 +1,68 @@
 import prisma from '../lib/prisma.js';
-import type { SignupBody } from 'super-chat-shared/auth';
-import { Prisma } from '../../generated/prisma/index.js';
+import { hash, compare } from "../lib/bcrypt.js";
+import { safeUserSchema, type LoginBody, type SignupBody } from 'super-chat-shared/auth';
+import { AppError } from "@/errors/appError.ts";
+import { isUniqueConstraintError } from "@/utils/prismaErrors.util.ts";
+import { generateToken } from "../lib/jwt.js";
 
-export const safeUserSelection = {
-    id: true,
-    name: true,
-    avatar: true,
-} satisfies Prisma.userSelect;
+export const authService = {
+    async login(body: LoginBody) {
+        const user = await prisma.user.findUnique({
+            where: { email: body.email }
+        });
 
-export async function insertUser(user: SignupBody) {
-    const result = await prisma.user.create({
-        data: {
-            name: user.name,
-            email: user.email,
-            password: user.password,
-            chats: {
-                connectOrCreate: {
-                    create: {
-                        id: "1",
-                        name: 'global'
-                    },
-                    where: {
-                        id: "1"
+        if (!user) {
+            throw new AppError(401, "Invalid credentials");
+        }
+
+        const isPasswordValid = await compare(body.password, user.password);
+        if (!isPasswordValid) {
+            throw new AppError(401, "Invalid credentials");
+        }
+
+        const safeUser = safeUserSchema.parse(user);
+        const token = await generateToken({ id: user.id });
+
+        return { safeUser, token };
+    },
+
+    async signup(body: SignupBody) {
+        const hashedPassword = await hash(body.password);
+
+        try {
+            const user = await prisma.user.create({
+                data: {
+                    ...body,
+                    password: hashedPassword,
+                    chats: {
+                        connectOrCreate: {
+                            create: { id: "1", name: 'global' },
+                            where: { id: "1" }
+                        }
                     }
                 }
+            });
+
+            const safeUser = safeUserSchema.parse(user);
+            const token = await generateToken({ id: user.id });
+
+            return { safeUser, token };
+
+        } catch (error) {
+            if (isUniqueConstraintError(error)) {
+                throw new AppError(409, "Email already exists");
             }
-        },
-        select: safeUserSelection
-    });
-    return result;
-}
-
-export async function getUserByEmail(email: string) {
-    const result = await prisma.user.findFirst({
-        where: {
-            email: email
+            throw error;
         }
-    });
-    return result;
-}
+    },
 
-export async function getUserById(id: string) {
-    const result = await prisma.user.findUnique({
-        where: {
-            id: id
-        },
-        select: safeUserSelection
-    });
-    return result;
-}
+    async checkAuth(userId: string) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
+        });
+
+        if (!user) return null;
+
+        return safeUserSchema.parse(user);
+    }
+};
