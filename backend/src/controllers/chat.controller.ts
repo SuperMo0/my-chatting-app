@@ -83,7 +83,7 @@ export async function acceptFriendRequest(req: AcceptFriendRequestRequest, res: 
     const userId = res.locals.userId;
     const requestId = req.params.requestId;
 
-    const [sender, receiver, chat] = await chatService.acceptFriendRequest(requestId);
+    const [sender, receiver, chat] = await chatService.acceptFriendRequest(requestId, userId);
 
     res.json({ sender, chat });
 

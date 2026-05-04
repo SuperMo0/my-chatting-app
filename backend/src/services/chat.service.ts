@@ -1,6 +1,7 @@
 import prisma from '../lib/prisma.js';
 import { Prisma } from '../../generated/prisma/index.js';
 import type { NewMessageBody } from 'super-chat-shared/chat';
+import { AppError } from '@/errors/appError.ts';
 
 const safeUserSelection = {
     name: true,
@@ -66,13 +67,17 @@ export async function createFriendRequest(senderId: string, receiverId: string) 
 }
 
 
-export async function acceptFriendRequest(requestId: string) {
+export async function acceptFriendRequest(requestId: string, receiverId: string) {
     const request = await prisma.request.findUnique({
         where: { id: requestId }
     });
 
     if (!request) {
         throw new Error("Request not found");
+    }
+
+    if (request.receiverId !== receiverId) {
+        throw new AppError(403, "You are not allowed to accept this friend request");
     }
 
     const [sender, receiver, chat] = await prisma.$transaction([
