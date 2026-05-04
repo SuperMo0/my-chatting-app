@@ -12,7 +12,7 @@ import path from "path";
 import type { GetSignUploadSignutureResponse } from "super-chat-shared/api";
 import { protect } from "./middlewares/protect.ts";
 import type { Response, Request } from "express";
-import { signuploadform } from "./utils/signUpload.ts";
+import { signuploadform } from "./utils/signUpload.util.ts";
 
 if (process.env.NODE_ENV === "development") {
     app.use(cors({
