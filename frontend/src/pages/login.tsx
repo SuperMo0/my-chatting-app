@@ -5,16 +5,24 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { type LoginBody, loginBodySchema } from "super-chat-shared/auth";
 import Input from "../components/ui/input";
 import { useLogin } from "./../hooks/use-auth-mutations";
+import { AxiosError } from "axios";
 export default function Login() {
 
     const login = useLogin();
 
-    const { register, handleSubmit, formState } = useForm({
+    const { register, handleSubmit, formState, setError } = useForm({
         resolver: zodResolver(loginBodySchema)
     });
 
     function handleFormSubmit(data: LoginBody) {
-        login.mutate(data);
+        login.mutate(data, {
+            onError: (e, v, res) => {
+                if (e instanceof AxiosError) {
+                    const message = e.response?.data?.message || 'An error occurred during login.';
+                    setError('root', { message });
+                }
+            }
+        });
     }
 
     return (
@@ -28,6 +36,11 @@ export default function Login() {
                 <div className="glass-card p-8 rounded-4xl">
                     <form noValidate onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
                         <div className="space-y-2">
+                            {formState.errors.root && (
+                                <div className="text-red-700 p-3 rounded">
+                                    {formState.errors.root.message}
+                                </div>
+                            )}
                             <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Email Address</label>
                             <Input
                                 required

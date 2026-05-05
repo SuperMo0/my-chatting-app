@@ -5,16 +5,24 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Input from '../components/ui/input.js';
 import { useSignup } from './../hooks/use-auth-mutations.js';
+import { AxiosError } from 'axios';
 
 export default function Signup() {
 
     const signup = useSignup();
-    const { register, handleSubmit, formState } = useForm({
+    const { register, handleSubmit, formState, setError } = useForm({
         resolver: zodResolver(signupBodySchema)
     });
 
     function handleFormSubmit(data: SignupBody) {
-        signup.mutate(data);
+        signup.mutate(data, {
+            onError: (e, v, res) => {
+                if (e instanceof AxiosError) {
+                    const message = e.response?.data?.message || 'An error occurred during Signup.';
+                    setError('root', { message });
+                }
+            }
+        });
     }
 
     return (
@@ -28,6 +36,11 @@ export default function Signup() {
                 <div className="glass-card p-8 rounded-4xl">
                     <form noValidate onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                         <div className="space-y-1">
+                            {formState.errors.root && (
+                                <div className="text-red-700 p-3 rounded">
+                                    {formState.errors.root.message}
+                                </div>
+                            )}
                             <label htmlFor='name' className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Full Name</label>
                             <Input
                                 {...register("name")}
