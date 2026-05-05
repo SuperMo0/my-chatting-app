@@ -58,10 +58,10 @@ io.on('connection', async (socket) => {
             onlineUsers[userId]--;
             if (onlineUsers[userId] === 0) delete onlineUsers[userId];
         }
-        io.emit('onlineUsersListChangeEvent');
+        io.emit('onlineUsersListChangeEvent', Object.keys(onlineUsers));
         console.log(`🔴socket disconnect current online: ${io.engine.clientsCount}`);
     })
-    io.emit('onlineUsersListChangeEvent');
+    io.emit('onlineUsersListChangeEvent', Object.keys(onlineUsers));
 
     console.log(`✅new socket connection current online: ${io.engine.clientsCount}`);
 })

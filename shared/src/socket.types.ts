@@ -4,7 +4,7 @@ import type { Message } from "./chat.types.js";
 export interface ServerToClientEvents {
     messageIsReadEvent: (payload: Message) => void
     newMessageEvent: (payload: Message) => void
-    onlineUsersListChangeEvent: () => void
+    onlineUsersListChangeEvent: (payload: string[]) => void
     friendRequestsToUserListChangeEvent: () => void
     friendsListChangeEvent: () => void
     userChatsChangeEvent: () => void
