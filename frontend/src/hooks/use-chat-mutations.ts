@@ -5,9 +5,9 @@ import {
     acceptFriendRequest,
     markMessageAsRead
 } from '../api/chat.api';
-import type { Message, NewMessageBody } from 'super-chat-shared/chat';
+import type { Chat, Message, NewMessageBody } from 'super-chat-shared/chat';
 import { createOptimisticMessage } from '../utils/optimistic-factory.util';
-import type { GetCheckResponse } from 'super-chat-shared/api';
+import type { GetChatMessagesResponse, GetCheckResponse, GetUserChatsResponse } from 'super-chat-shared/api';
 
 export const useCreateFriendRequest = () => {
     const queryClient = useQueryClient();
@@ -27,7 +27,7 @@ export const useCreateNewMessage = () => {
         onMutate: async ({ chatId, messageData }) => {
             await queryClient.cancelQueries({ queryKey: ['chat', 'messages', chatId] });
 
-            const previousMessages = queryClient.getQueryData<InfiniteData<{ messages: Message[] }, string>>(['chat', 'messages', chatId]);
+            const previousMessages = queryClient.getQueryData<InfiniteData<GetChatMessagesResponse>>(['chat', 'messages', chatId]);
 
             const sessionData = queryClient.getQueryData<GetCheckResponse>(['auth', 'session']);
             const senderId = sessionData?.user?.id || 'optimistic_sender';
@@ -40,7 +40,7 @@ export const useCreateNewMessage = () => {
                 chatId
             );
 
-            queryClient.setQueryData<InfiniteData<{ messages: Message[] }, string>>(['chat', 'messages', chatId], (oldData) => {
+            queryClient.setQueryData<InfiniteData<GetChatMessagesResponse>>(['chat', 'messages', chatId], (oldData) => {
                 if (!oldData || !oldData.pages || oldData.pages.length === 0) return oldData;
                 const newPages = [...oldData.pages];
                 newPages[0] = {
@@ -62,7 +62,7 @@ export const useCreateNewMessage = () => {
             }
         },
         onSuccess: (data, variables, context) => {
-            queryClient.setQueryData<InfiniteData<{ messages: Message[] }, string>>(['chat', 'messages', variables.chatId], (oldData) => {
+            queryClient.setQueryData<InfiniteData<GetChatMessagesResponse>>(['chat', 'messages', variables.chatId], (oldData) => {
                 if (!oldData || !oldData.pages || oldData.pages.length === 0) return oldData;
                 const newPages = [...oldData.pages];
                 newPages[0] = {
@@ -97,20 +97,7 @@ export const useMarkMessageAsRead = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (messageId: string) => markMessageAsRead(messageId),
-        onSuccess: (data) => {
-            queryClient.setQueryData(['chat', 'messages', data.message.chatId], (oldData: any) => {
-                if (!oldData || !oldData.pages) return oldData;
-
-                return {
-                    ...oldData,
-                    pages: oldData.pages.map((page: any) => ({
-                        ...page,
-                        messages: page.messages.map((msg: any) =>
-                            msg.id === data.message.id ? data.message : msg
-                        )
-                    }))
-                };
-            });
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['chat', 'chats'] });
         }
     });

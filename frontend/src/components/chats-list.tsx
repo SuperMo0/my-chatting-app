@@ -3,12 +3,14 @@ import { cn } from '../utils/utils.js';
 import { getFriend } from '../utils/chat.util';
 import { useCheckSession } from '../hooks/use-auth-queries.ts';
 import { useUserChats } from '../hooks/use-chat-queries.ts';
+import { useMarkMessageAsRead } from '../hooks/use-chat-mutations.ts';
 import { ChatSkeleton } from './ui/chat-skeleton.tsx';
 
 export default function ChatsList() {
     const { setSelectedChat, onlineUsers } = useChatStore();
     const { data: authUser } = useCheckSession();
     const { data: chats, isLoading: isGettingChats } = useUserChats();
+    const { mutate: markMessageAsRead } = useMarkMessageAsRead();
 
 
     if (isGettingChats) {
@@ -28,7 +30,10 @@ export default function ChatsList() {
                 return (
                     <div
                         key={chat.id}
-                        onClick={() => setSelectedChat(chat)}
+                        onClick={() => {
+                            if (isUnread) markMessageAsRead(lastMsg.id);
+                            setSelectedChat(chat);
+                        }}
                         className={cn(
                             'flex gap-3 items-center p-3 cursor-pointer rounded-2xl transition-all duration-200 group hover:bg-white dark:hover:bg-slate-800 shadow-hover',
                             isUnread ? "bg-blue/5 dark:bg-blue/10" : "hover:shadow-md"

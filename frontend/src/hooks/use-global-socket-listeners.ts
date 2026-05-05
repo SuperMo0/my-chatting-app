@@ -3,10 +3,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useChatStore } from '../stores/chat.store';
 import type { Message } from 'super-chat-shared/chat';
 import type { GetChatMessagesResponse } from 'super-chat-shared/api';
+import { useMarkMessageAsRead } from './use-chat-mutations';
 
 export const useGlobalSocketListeners = () => {
     const queryClient = useQueryClient();
     const { socket } = useChatStore();
+    const { mutate: markMessageAsRead } = useMarkMessageAsRead();
 
     useEffect(() => {
         if (!socket) return;
@@ -28,8 +30,19 @@ export const useGlobalSocketListeners = () => {
         };
 
         const handleNewMessage = (newMessage: Message) => {
+            const currentSelectedChat = useChatStore.getState().selectedChat;
+
             queryClient.setQueryData(['chat', 'messages', newMessage.chatId], (oldData: any) => {
                 if (!oldData || !oldData.pages || oldData.pages.length === 0) return oldData;
+
+                const messageExists = oldData.pages.some((page: any) =>
+                    page.messages.some((msg: Message) => msg.id === newMessage.id)
+                );
+
+                if (messageExists) {
+                    return oldData;
+                }
+
                 const newPages = [...oldData.pages];
                 newPages[0] = {
                     ...newPages[0],
@@ -41,6 +54,12 @@ export const useGlobalSocketListeners = () => {
                     pages: newPages
                 };
             });
+
+            if (currentSelectedChat?.id === newMessage.chatId && !newMessage.isRead) {
+                setTimeout(() => {
+                    markMessageAsRead(newMessage.id);
+                }, 50);
+            }
         };
 
         const handleFriendRequestsChange = () => {
