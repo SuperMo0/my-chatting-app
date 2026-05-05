@@ -1,12 +1,12 @@
 import './App.css'
-import Home from './pages/Home.js'
+import Home from './pages/home.js'
 import { Routes, Route, Navigate } from 'react-router'
-import Chats from './pages/Chats.jsx'
-import Profile from './pages/Profile.jsx'
-import People from './pages/People.jsx'
-import Login from './pages/Login.js'
+import Chats from './pages/chats.jsx'
+import Profile from './pages/profile.jsx'
+import People from './pages/people.jsx'
+import Login from './pages/login.js'
 import { ToastContainer } from 'react-toastify';
-import Signup from './pages/Signup.js'
+import Signup from './pages/signup.js'
 import { useTheme } from './theme/useTheme.js';
 import { useCheckSession } from './hooks/use-auth-queries.js'
 import LoadingScreen from './components/ui/loading-screen.js'

@@ -1,4 +1,4 @@
-import UsersList from './UsersList';
+import UsersList from './users-list';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useUserFriendsRequestsTo } from '../hooks/use-chat-queries';
 

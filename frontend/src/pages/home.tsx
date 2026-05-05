@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Outlet } from 'react-router'
-import Panel from '../components/Panel'
+import Panel from '../components/panel'
 import { useChatStore } from '../stores/chat.store';
 import { useUserChats, useUserFriendsRequestsTo } from '../hooks/use-chat-queries';
 import { useGlobalSocketListeners } from '../hooks/use-global-socket-listeners';

@@ -1,5 +1,5 @@
-import ChatsList from '../components/ChatsList.js';
-import UserChat from '../components/UserChat.js';
+import ChatsList from '../components/chats-list.js';
+import UserChat from '../components/user-chat.js';
 import ChatPlaceholder from '../components/ui/chat-placeholder.js';
 import { useChatStore } from '../stores/chat.store.js';
 import { cn } from '../utils/utils.js';

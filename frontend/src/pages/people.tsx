@@ -1,15 +1,15 @@
 import { useState } from 'react'
-import SearchInput from '../components/SearchInput.jsx'
-import AllPeople from '../components/AllPeople.jsx'
-import Friends from '../components/Friends.jsx'
+import SearchInput from '../components/search-input.jsx'
+import AllPeople from '../components/all-people.jsx'
+import Friends from '../components/friends.jsx'
 import { ClipLoader } from "react-spinners";
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import Requests from '../components/Requests.jsx'
-import PeopleIcon from '@mui/icons-material/People';
+import Requests from '../components/requests.jsx'
+import PeopleIcon from '@mui/icons-material/people';
 import PublicIcon from '@mui/icons-material/Public';
 import ShareLocationIcon from '@mui/icons-material/ShareLocation';
 import { useUserFriends, useUserFriendsRequestsTo, useUserFriendsRequestsBy } from '../hooks/use-chat-queries.ts';
-import TabBtn from '../components/ui/TabBtn.tsx';
+import TabBtn from '../components/ui/tab-btn.tsx';
 
 export default function People() {
     const [tab, setTab] = useState('friends')

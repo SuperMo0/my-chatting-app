@@ -1,5 +1,5 @@
 import type { SafeUser } from 'super-chat-shared/auth';
-import UserCard from './UserCard';
+import UserCard from './user-card';
 
 type UserListItem = {
     users: SafeUser[]

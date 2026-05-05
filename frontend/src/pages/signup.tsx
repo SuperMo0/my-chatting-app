@@ -3,7 +3,7 @@ import { NavLink } from 'react-router';
 import { signupBodySchema, type SignupBody } from 'super-chat-shared/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Input from '../components/ui/Input.js';
+import Input from '../components/ui/input.js';
 import { useSignup } from './../hooks/use-auth-mutations.js';
 
 export default function Signup() {

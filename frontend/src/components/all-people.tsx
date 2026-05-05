@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import UsersList from './UsersList'
+import UsersList from './users-list'
 import { ClipLoader } from "react-spinners";
 import { useCheckSession } from '../hooks/use-auth-queries';
 import { useAllUsers, useUserFriends } from '../hooks/use-chat-queries';

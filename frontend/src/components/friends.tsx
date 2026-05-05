@@ -1,6 +1,6 @@
 import React from 'react'
-import UsersList from './UsersList'
-import PeopleIcon from '@mui/icons-material/People';
+import UsersList from './users-list'
+import PeopleIcon from '@mui/icons-material/people';
 import { useUserFriends } from '../hooks/use-chat-queries';
 
 export default function Friends() {

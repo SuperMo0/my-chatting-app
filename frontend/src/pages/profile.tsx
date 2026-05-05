@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, type ChangeEvent } from 'react'
 import { useCheckSession } from '../hooks/use-auth-queries';
 import { useLogout, useUpdateProfile } from '../hooks/use-auth-mutations';
-import Cropper from '../components/Cropper';
+import Cropper from '../components/cropper';
 import { toast } from 'react-toastify';
 import { useUserFriends } from '../hooks/use-chat-queries';
 import { CameraAlt, Logout, DarkMode, LightMode } from '@mui/icons-material';

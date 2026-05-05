@@ -3,7 +3,7 @@ import { ClipLoader } from "react-spinners";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type LoginBody, loginBodySchema } from "super-chat-shared/auth";
-import Input from "../components/ui/Input";
+import Input from "../components/ui/input";
 import { useLogin } from "./../hooks/use-auth-mutations";
 export default function Login() {
 

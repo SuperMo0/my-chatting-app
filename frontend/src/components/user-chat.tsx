@@ -1,9 +1,9 @@
 import { useRef, useCallback, useEffect } from 'react'
 import { useChatStore } from '../stores/chat.store.ts'
-import UserChatHeader from './UserChatHeader.jsx';
-import MeBubble from './MeBubble.jsx'
-import FriendBubble from './FriendBubble.jsx'
-import ChatInput from './ChatInput.jsx';
+import UserChatHeader from './user-chat-header.jsx';
+import MeBubble from './me-bubble.jsx'
+import FriendBubble from './friend-bubble.jsx'
+import ChatInput from './chat-input.jsx';
 import { useCheckSession } from '../hooks/use-auth-queries.ts';
 import { useChatMessages } from '../hooks/use-chat-queries.ts';
 import { useMarkMessageAsRead } from '../hooks/use-chat-mutations.ts';
