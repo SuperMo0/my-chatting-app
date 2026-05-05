@@ -5,7 +5,7 @@ import Friends from '../components/friends.jsx'
 import { ClipLoader } from "react-spinners";
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import Requests from '../components/requests.jsx'
-import PeopleIcon from '@mui/icons-material/people';
+import PeopleIcon from '@mui/icons-material/People';
 import PublicIcon from '@mui/icons-material/Public';
 import ShareLocationIcon from '@mui/icons-material/ShareLocation';
 import { useUserFriends, useUserFriendsRequestsTo, useUserFriendsRequestsBy } from '../hooks/use-chat-queries.ts';
