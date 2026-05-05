@@ -58,6 +58,7 @@ export default function UserChat() {
         </div>
     );
 
+    if (!selectedChat) return null;
     return (
         <div className='h-full flex flex-col bg-white/10 dark:bg-slate-900/20 backdrop-blur-2xl border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden rounded-4xl transition-all duration-500'>
             <div className="z-10">
@@ -99,7 +100,7 @@ export default function UserChat() {
             </div>
 
             <div className='p-2 md:p-4 bg-white/5 dark:bg-black/5 backdrop-blur-md border-t border-white/10 dark:border-white/5'>
-                <ChatInput onSend={scrollToBottom} chatId={selectedChat?.id} />
+                <ChatInput onSend={scrollToBottom} chatId={selectedChat.id} />
             </div>
         </div>
     )

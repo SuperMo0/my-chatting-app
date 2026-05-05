@@ -71,7 +71,6 @@ export const useCreateNewMessage = () => {
                         msg.id === context?.optimisticMessageId ? data.message : msg
                     )
                 };
-
                 return {
                     ...oldData,
                     pages: newPages
