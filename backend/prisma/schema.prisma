@@ -31,13 +31,13 @@ model chat {
   id            String    @id @default(dbgenerated("gen_random_uuid()"))
   users         user[]
   name          String?
-  lastMessage   message?  @relation("last_message", fields: [lastMessageId], references: [id])
+  lastMessage   message?  @relation("last_message", fields: [lastMessageId], references: [id], onUpdate: Cascade)
   lastMessageId String?   @unique
   messages      message[] @relation("chat_messages")
 }
 
 model message {
-  id        String    @id @default(dbgenerated("gen_random_uuid()"))
+  id        String    @id @default(uuid(7))
   content   String?
   type      String    @default("text")
   lastIn    chat?     @relation("last_message")
