@@ -13,7 +13,7 @@ type ChatInputProps = {
 export default function ChatInput({ onSend, chatId }: ChatInputProps) {
     const [text, setText] = useState("");
     const [showEmoji, setShowEmoji] = useState(false);
-    const { mutateAsync: sendMessage } = useCreateNewMessage();
+    const { mutate: sendMessage } = useCreateNewMessage();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
@@ -29,14 +29,17 @@ export default function ChatInput({ onSend, chatId }: ChatInputProps) {
 
         if (!trimmedText || !chatId) return;
 
-        try {
-            setText("");
-            setShowEmoji(false);
-            if (onSend) onSend();
-            await sendMessage({ chatId, messageData: { content: trimmedText } });
-        } catch (error) {
-            toast.error("Failed to send message");
-        }
+
+        setText("");
+        setShowEmoji(false);
+        if (onSend) onSend();
+        sendMessage({ chatId, messageData: { content: trimmedText } }, {
+            onError: () => {
+                toast.error('Failed to send message. Please try again.');
+                setText(trimmedText);
+            }
+        });
+
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
