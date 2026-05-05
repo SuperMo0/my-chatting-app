@@ -36,7 +36,6 @@
     "react-toastify": "^11.0.5",
     "react-virtuoso": "^4.18.6",
     "socket.io-client": "^4.8.3",
-    "super-chat-shared": "*",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "vite": "^7.2.4",
@@ -50,6 +49,7 @@
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24"
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "super-chat-shared": "^1.0.0"
   }
 }
