@@ -150,7 +150,6 @@ export function getAllUsers() {
     return result;
 }
 
-// todo: we need to use uuid Version 7 for this function to work.
 export async function getChatMessages(chatId: string, cursor: string | null, limit: number) {
 
     const result = await prisma.message.findMany({
@@ -162,7 +161,6 @@ export async function getChatMessages(chatId: string, cursor: string | null, lim
             skip: 1,
         }),
         orderBy: [
-            { timestamp: 'desc' },
             { id: 'desc' },
         ],
         take: limit,
