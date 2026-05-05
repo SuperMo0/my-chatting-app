@@ -1,11 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import {
     createFriendRequest,
     createNewMessage,
     acceptFriendRequest,
     markMessageAsRead
 } from '../api/chat.api';
-import type { NewMessageBody } from 'super-chat-shared/chat';
+import type { Message, NewMessageBody } from 'super-chat-shared/chat';
+import { createOptimisticMessage } from '../utils/optimistic-factory.util';
+import type { GetCheckResponse } from 'super-chat-shared/api';
 
 export const useCreateFriendRequest = () => {
     const queryClient = useQueryClient();
@@ -22,15 +24,28 @@ export const useCreateNewMessage = () => {
     return useMutation({
         mutationFn: ({ chatId, messageData }: { chatId: string; messageData: NewMessageBody }) =>
             createNewMessage(chatId, messageData),
-        onSuccess: (data, variables) => {
-            // Optimistically update the infinite query 
-            queryClient.setQueryData(['chat', 'messages', variables.chatId], (oldData: any) => {
-                if (!oldData || !oldData.pages || oldData.pages.length === 0) return oldData;
+        onMutate: async ({ chatId, messageData }) => {
+            await queryClient.cancelQueries({ queryKey: ['chat', 'messages', chatId] });
 
+            const previousMessages = queryClient.getQueryData<InfiniteData<{ messages: Message[] }, string>>(['chat', 'messages', chatId]);
+
+            const sessionData = queryClient.getQueryData<GetCheckResponse>(['auth', 'session']);
+            const senderId = sessionData?.user?.id || 'optimistic_sender';
+
+            const optimisticMessage = createOptimisticMessage(
+                messageData.content || null,
+                null,
+                messageData.type || 'TEXT',
+                senderId,
+                chatId
+            );
+
+            queryClient.setQueryData<InfiniteData<{ messages: Message[] }, string>>(['chat', 'messages', chatId], (oldData) => {
+                if (!oldData || !oldData.pages || oldData.pages.length === 0) return oldData;
                 const newPages = [...oldData.pages];
                 newPages[0] = {
                     ...newPages[0],
-                    messages: [data.message, ...newPages[0].messages]
+                    messages: [optimisticMessage, ...newPages[0].messages]
                 };
 
                 return {
@@ -38,13 +53,32 @@ export const useCreateNewMessage = () => {
                     pages: newPages
                 };
             });
-            // Update chat list
+
+            return { previousMessages, optimisticMessageId: optimisticMessage.id };
+        },
+        onError: (_err, variables, context) => {
+            if (context?.previousMessages) {
+                queryClient.setQueryData(['chat', 'messages', variables.chatId], context.previousMessages);
+            }
+        },
+        onSuccess: (data, variables, context) => {
+            queryClient.setQueryData<InfiniteData<{ messages: Message[] }, string>>(['chat', 'messages', variables.chatId], (oldData) => {
+                if (!oldData || !oldData.pages || oldData.pages.length === 0) return oldData;
+                const newPages = [...oldData.pages];
+                newPages[0] = {
+                    ...newPages[0],
+                    messages: newPages[0].messages.map((msg) =>
+                        msg.id === context?.optimisticMessageId ? data.message : msg
+                    )
+                };
+
+                return {
+                    ...oldData,
+                    pages: newPages
+                };
+            });
             queryClient.invalidateQueries({ queryKey: ['chat', 'chats'] });
         },
-        onSettled: (_, __, variables) => {
-            // Fallback invalidation
-            // queryClient.invalidateQueries({ queryKey: ['chat', 'messages', variables.chatId] });
-        }
     });
 };
 
@@ -65,7 +99,6 @@ export const useMarkMessageAsRead = () => {
     return useMutation({
         mutationFn: (messageId: string) => markMessageAsRead(messageId),
         onSuccess: (data) => {
-            // Optimistically just swap the message
             queryClient.setQueryData(['chat', 'messages', data.message.chatId], (oldData: any) => {
                 if (!oldData || !oldData.pages) return oldData;
 

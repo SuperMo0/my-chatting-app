@@ -36,7 +36,7 @@ export const useChatMessages = (chatId: string) => {
     return useInfiniteQuery({
         queryKey: ['chat', 'messages', chatId],
         queryFn: ({ pageParam }) => getChatMessages(chatId, pageParam),
-        getNextPageParam: (lastPage) => lastPage.nextCursor || null,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
         initialPageParam: null as string | null,
     });
 };
